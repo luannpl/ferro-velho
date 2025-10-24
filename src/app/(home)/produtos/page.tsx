@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2 } from "lucide-react";
 
 interface Product {
@@ -13,32 +13,44 @@ interface Product {
 
 export default function ProdutosPage() {
   const [showProductForm, setShowProductForm] = useState(false);
-  const [products, setProducts] = useState<Product[]>([
-    {
-      id: 1,
-      name: "Ferro",
-      category: "Metais",
-      weight: 150,
-      pricePerKg: 2.5,
-      stock: 150,
-    },
-    {
-      id: 2,
-      name: "Alumínio",
-      category: "Metais",
-      weight: 80,
-      pricePerKg: 5.8,
-      stock: 80,
-    },
-    {
-      id: 3,
-      name: "Cobre",
-      category: "Metais",
-      weight: 45,
-      pricePerKg: 25.0,
-      stock: 45,
-    },
-  ]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    category: "",
+    pricePerKg: 0,
+    stock: 0,
+  });
+
+  const fetchProducts = async () => {
+    const response = await fetch("/api/products");
+    const data = await response.json();
+    setProducts(data);
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const handleCreateProduct = async () => {
+    const response = await fetch("/api/products", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newProduct),
+    });
+
+    if (response.ok) {
+      fetchProducts();
+      setShowProductForm(false);
+      setNewProduct({
+        name: "",
+        category: "",
+        pricePerKg: 0,
+        stock: 0,
+      });
+    }
+  };
 
   return (
     <div>
@@ -61,25 +73,51 @@ export default function ProdutosPage() {
               type="text"
               placeholder="Nome do produto"
               className="border rounded px-3 py-2"
+              value={newProduct.name}
+              onChange={(e) =>
+                setNewProduct({ ...newProduct, name: e.target.value })
+              }
             />
             <input
               type="text"
               placeholder="Categoria"
               className="border rounded px-3 py-2"
+              value={newProduct.category}
+              onChange={(e) =>
+                setNewProduct({ ...newProduct, category: e.target.value })
+              }
             />
-            <input
-              type="number"
-              placeholder="Peso (kg)"
-              className="border rounded px-3 py-2"
-            />
+
             <input
               type="number"
               placeholder="Preço por kg"
               className="border rounded px-3 py-2"
+              value={newProduct.pricePerKg}
+              onChange={(e) =>
+                setNewProduct({
+                  ...newProduct,
+                  pricePerKg: Number(e.target.value),
+                })
+              }
+            />
+            <input
+              type="number"
+              placeholder="Estoque (kg)"
+              className="border rounded px-3 py-2"
+              value={newProduct.stock}
+              onChange={(e) =>
+                setNewProduct({
+                  ...newProduct,
+                  stock: Number(e.target.value),
+                })
+              }
             />
           </div>
           <div className="flex w-full justify-end space-x-3 mt-4">
-            <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer">
+            <button
+              onClick={handleCreateProduct}
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer"
+            >
               Salvar
             </button>
             <button

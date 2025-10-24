@@ -1,0 +1,20 @@
+datasource db {
+  provider  = "postgresql"
+  url  	    = env("DATABASE_URL")
+  // uncomment next line if you use Prisma <5.10
+  // directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Product {
+  id    Int    @id @default(autoincrement())
+  name  String
+  category String
+  pricePerKg Float
+  stock Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
