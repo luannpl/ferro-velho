@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Home,
   Package,
@@ -9,9 +9,11 @@ import {
   Users,
   Settings,
   LucideIcon,
-} from 'lucide-react';
+  CircleArrowLeft,
+  Menu,
+} from "lucide-react";
 
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname } from "next/navigation";
 
 // Definição do item do menu
 interface MenuItem {
@@ -23,12 +25,17 @@ interface MenuItem {
 
 // Array com os itens do menu
 const menuItems: MenuItem[] = [
-  { id: 'dashboard', icon: Home, label: 'Dashboard', path: '/dashboard' },
-  { id: 'produtos', icon: Package, label: 'Produtos', path: '/produtos' },
-  { id: 'compras', icon: DollarSign, label: 'Compras', path: '/compras' },
-  { id: 'vendas', icon: ShoppingCart, label: 'Vendas', path: '/vendas' },
-  { id: 'clientes', icon: Users, label: 'Clientes', path: '/clientes' },
-  { id: 'configuracao', icon: Settings, label: 'Configurações', path: '/configuracao' },
+  { id: "dashboard", icon: Home, label: "Dashboard", path: "/dashboard" },
+  { id: "produtos", icon: Package, label: "Produtos", path: "/produtos" },
+  { id: "compras", icon: DollarSign, label: "Compras", path: "/compras" },
+  { id: "vendas", icon: ShoppingCart, label: "Vendas", path: "/vendas" },
+  { id: "clientes", icon: Users, label: "Clientes", path: "/clientes" },
+  {
+    id: "configuracao",
+    icon: Settings,
+    label: "Configurações",
+    path: "/configuracao",
+  },
 ];
 
 // Componente da Sidebar
@@ -44,7 +51,7 @@ const Sidebar = ({
   return (
     <div
       className={`${
-        sidebarOpen ? 'w-64' : 'w-0'
+        sidebarOpen ? "w-64" : "w-0"
       } bg-gray-900 text-white transition-all duration-300 overflow-hidden h-screen`}
     >
       <div className="p-4">
@@ -55,7 +62,7 @@ const Sidebar = ({
               key={item.id}
               onClick={() => navigateTo(item.path)}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                activePath === item.path ? 'bg-blue-600' : 'hover:bg-gray-800'
+                activePath === item.path ? "bg-blue-600" : "hover:bg-gray-800"
               }`}
             >
               <item.icon size={20} />
@@ -93,9 +100,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             className="text-gray-700 hover:text-black"
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >
-            {sidebarOpen ? 'Fechar Menu' : 'Abrir Menu'}
+            {sidebarOpen ? <CircleArrowLeft /> : <Menu />}
           </button>
-          <span className="text-sm text-gray-500">Página atual: {pathname}</span>
         </div>
 
         {/* Conteúdo da página */}
