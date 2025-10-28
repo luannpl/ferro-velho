@@ -15,12 +15,14 @@ export default function Home() {
         <h1 className="text-5xl font-black mb-10 text-white tracking-wider drop-shadow-lg">
           Ferro Velho
         </h1>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-5xl w-full">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-5xl w-full">
           <CardNav href="/dashboard" icon={TrendingUp} title="Dashboard" />
+          <CardNav href="/categoria" icon={Package} title="Categoria" />
           <CardNav href="/produtos" icon={Package} title="Produtos" />
           <CardNav href="/compras" icon={DollarSign} title="Compras" />
           <CardNav href="/vendas" icon={ShoppingCart} title="Vendas" />
           <CardNav href="/clientes" icon={Users} title="Clientes" />
+          <CardNav href="/fornecedor" icon={Users} title="Fornecedor" />
           <CardNav href="/configuracao" icon={Settings} title="Configurações" />
         </div>
       </div>

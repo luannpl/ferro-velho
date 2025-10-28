@@ -26,10 +26,12 @@ interface MenuItem {
 // Array com os itens do menu
 const menuItems: MenuItem[] = [
   { id: "dashboard", icon: TrendingUp , label: "Dashboard", path: "/dashboard" },
+  { id: "categoria", icon: Settings, label: "Categoria", path: "/categoria" },
   { id: "produtos", icon: Package, label: "Produtos", path: "/produtos" },
   { id: "compras", icon: DollarSign, label: "Compras", path: "/compras" },
   { id: "vendas", icon: ShoppingCart, label: "Vendas", path: "/vendas" },
   { id: "clientes", icon: Users, label: "Clientes", path: "/clientes" },
+  { id: "fornecedor", icon: Users, label: "Fornecedor", path: "/fornecedor" },
   { id: "configuracao", icon: Settings, label: "Configurações", path: "/configuracao" },
 ];
 

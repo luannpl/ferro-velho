@@ -17,8 +17,8 @@ export default function ProdutosPage() {
   const [newProduct, setNewProduct] = useState({
     name: "",
     category: "",
-    pricePerKg: 0,
-    stock: 0,
+    pricePerKg: "" as string | number, // Mudar para string inicialmente
+    stock: "" as string | number, // Mudar para string inicialmente
   });
 
   const fetchProducts = async () => {
@@ -32,12 +32,19 @@ export default function ProdutosPage() {
   }, []);
 
   const handleCreateProduct = async () => {
+    // Converter para número antes de enviar
+    const productToSend = {
+      ...newProduct,
+      pricePerKg: Number(newProduct.pricePerKg) || 0,
+      stock: Number(newProduct.stock) || 0,
+    };
+
     const response = await fetch("/api/products", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(newProduct),
+      body: JSON.stringify(productToSend),
     });
 
     if (response.ok) {
@@ -46,8 +53,8 @@ export default function ProdutosPage() {
       setNewProduct({
         name: "",
         category: "",
-        pricePerKg: 0,
-        stock: 0,
+        pricePerKg: "", // Resetar para string vazia
+        stock: "", // Resetar para string vazia
       });
     }
   };
@@ -96,19 +103,19 @@ export default function ProdutosPage() {
               onChange={(e) =>
                 setNewProduct({
                   ...newProduct,
-                  pricePerKg: Number(e.target.value),
+                  pricePerKg: e.target.value, // Manter como string
                 })
               }
             />
             <input
               type="number"
-              placeholder="Estoque (kg)"
+              placeholder="Estoque"
               className="border rounded px-3 py-2"
               value={newProduct.stock}
               onChange={(e) =>
                 setNewProduct({
                   ...newProduct,
-                  stock: Number(e.target.value),
+                  stock: e.target.value, // Manter como string
                 })
               }
             />
