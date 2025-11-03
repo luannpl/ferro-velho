@@ -125,7 +125,7 @@ export default function ProdutosPage() {
               onClick={handleCreateProduct}
               className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer"
             >
-              Salvar
+              Criar
             </button>
             <button
               onClick={() => setShowProductForm(false)}
