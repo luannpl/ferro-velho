@@ -58,6 +58,22 @@ export default function ClientePage() {
         }
     }
 
+    const handleDeleteClient = async (id: number) => {
+        if (!confirm("Tem certeza que deseja deletar este cliente?")) return;
+
+        const response = await fetch(`/api/client/${id}`, {
+            method: "DELETE",
+        });
+
+        if (response.ok) {
+            alert("Cliente deletado com sucesso!");
+            fetchClient(); // atualiza a lista
+        } else {
+            const error = await response.json();
+            alert("Erro ao deletar: " + error.message);
+        }
+    };
+
     return (
         <div>
             <div className='flex justify-between items-center mb-6'>
@@ -204,7 +220,10 @@ export default function ClientePage() {
                                     <button className="text-blue-600 hover:text-blue-800 mr-3">
                                         <Edit2 size={18} />
                                     </button>
-                                    <button className="text-red-600 hover:text-red-800">
+                                    <button
+                                        onClick={() => handleDeleteClient(client.id)}
+                                        className="text-red-600 hover:text-red-800"
+                                    >
                                         <Trash2 size={18} />
                                     </button>
                                 </td>
