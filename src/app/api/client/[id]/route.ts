@@ -19,12 +19,16 @@ export async function DELETE(
       { message: "Cliente deletado com sucesso" },
       { status: 200 }
     );
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-export async function PATCH(req: Request, context: { params: Promise<{ id: string }> }) {
+export async function PATCH(
+  req: Request,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
     const { id } = await context.params;
     const clientId = Number(id);
@@ -43,6 +47,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
       },
       { status: 200 }
     );
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
