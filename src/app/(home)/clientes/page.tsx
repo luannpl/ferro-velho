@@ -29,7 +29,7 @@ export default function ClientePage() {
 
     useEffect(() => {
         fetchClient()
-    })
+    }, [])
 
     const handlerCreateClient = async () => {
         const clientToSend = {
@@ -37,7 +37,7 @@ export default function ClientePage() {
             idade: Number(newClient.idade) || 0
         }
 
-        const response = await fetch("api/client", {
+        const response = await fetch("/api/client", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -96,21 +96,41 @@ export default function ClientePage() {
                         <input
                             type="text"
                             placeholder="Telefone do cliente"
-                            className='border rounded px-3 py-2'
+                            className="border rounded px-3 py-2"
                             value={newClient.telefone}
-                            onChange={(e) =>
-                                setNewClient({ ...newClient, telefone: e.target.value })
-                            }
+                            maxLength={15} // limita ao tamanho máximo (ex: (99) 99999-9999)
+                            onChange={(e) => {
+                                let value = e.target.value.replace(/\D/g, ""); // remove tudo que não for número
+
+                                // aplica a máscara passo a passo
+                                if (value.length > 2) {
+                                    value = value.replace(/^(\d{2})(\d)/g, "($1) $2");
+                                }
+                                if (value.length > 7) {
+                                    value = value.replace(/(\d{5})(\d{4})$/, "$1-$2");
+                                }
+
+                                setNewClient({ ...newClient, telefone: value });
+                            }}
                         />
                         <input
                             type="text"
-                            placeholder='Cpf do cliente'
-                            className='border rounded px-3 py-2'
+                            placeholder="CPF do cliente"
+                            className="border rounded px-3 py-2"
                             value={newClient.cpf}
-                            onChange={(e) =>
-                                setNewClient({ ...newClient, cpf: e.target.value })
-                            }
+                            maxLength={14} // limite máximo (ex: 999.999.999-99)
+                            onChange={(e) => {
+                                let value = e.target.value.replace(/\D/g, ""); // remove tudo que não for número
+
+                                // aplica a máscara
+                                value = value.replace(/(\d{3})(\d)/, "$1.$2");
+                                value = value.replace(/(\d{3})(\d)/, "$1.$2");
+                                value = value.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+
+                                setNewClient({ ...newClient, cpf: value });
+                            }}
                         />
+
                         <input
                             type="text"
                             placeholder='Email do cliente'
@@ -137,6 +157,62 @@ export default function ClientePage() {
                     </div>
                 </div>
             )}
+
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+                <table className='w-full'>
+                    <thead className='bg-gray-50'>
+                        <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                Nome
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                Idade
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                Email
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                Telefone
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                Cpf
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                Ações
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                        {client.map((client) => (
+                            <tr key={client.id}>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    {client.name}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    {client.idade}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    {client.email}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    {client.telefone}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    {client.cpf}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <button className="text-blue-600 hover:text-blue-800 mr-3">
+                                        <Edit2 size={18} />
+                                    </button>
+                                    <button className="text-red-600 hover:text-red-800">
+                                        <Trash2 size={18} />
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }
