@@ -1,5 +1,6 @@
 import { ProductData } from "@/types";
 import { productRepository } from "./product.repository";
+import { stat } from "fs";
 
 export const productService = {
   getAll: async () => {
@@ -26,6 +27,17 @@ export const productService = {
   },
 
   delete: async (id: number) => {
-    return await productRepository.delete(id);
+    const product = await productRepository.findById(id);
+    if (!product) {
+      return {
+        message: "Produto não encontrado",
+        status: 404,
+      };
+    }
+    await productRepository.delete(id);
+    return {
+      message: "Produto deletado com sucesso",
+      status: 200,
+    };
   },
 };

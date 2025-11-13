@@ -73,69 +73,98 @@ export default function ProdutosPage() {
       </div>
 
       {showProductForm && (
-        <div className="bg-white p-6 rounded-lg shadow mb-6">
-          <h3 className="text-xl font-bold mb-4">Cadastrar Produto</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <input
-              type="text"
-              placeholder="Nome do produto"
-              className="border rounded px-3 py-2"
-              value={newProduct.name}
-              onChange={(e) =>
-                setNewProduct({ ...newProduct, name: e.target.value })
-              }
-            />
-            <input
-              type="text"
-              placeholder="Categoria"
-              className="border rounded px-3 py-2"
-              value={newProduct.category}
-              onChange={(e) =>
-                setNewProduct({ ...newProduct, category: e.target.value })
-              }
-            />
+  <div className="bg-white p-6 rounded-lg shadow mb-6">
+    <h3 className="text-xl font-bold mb-4">Cadastrar Produto</h3>
+    <div className="grid grid-cols-2 gap-4">
+      {/* Nome do produto */}
+      <div className="flex flex-col">
+        <label className="text-sm font-medium text-gray-700 mb-1">
+          Nome do produto
+        </label>
+        <input
+          type="text"
+          placeholder="Ex: Geladeira"
+          className="border rounded px-3 py-2"
+          value={newProduct.name}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, name: e.target.value })
+          }
+        />
+      </div>
 
-            <input
-              type="number"
-              placeholder="Preço por kg"
-              className="border rounded px-3 py-2"
-              value={newProduct.pricePerKg}
-              onChange={(e) =>
-                setNewProduct({
-                  ...newProduct,
-                  pricePerKg: e.target.value, // Manter como string
-                })
-              }
-            />
-            <input
-              type="number"
-              placeholder="Estoque"
-              className="border rounded px-3 py-2"
-              value={newProduct.stock}
-              onChange={(e) =>
-                setNewProduct({
-                  ...newProduct,
-                  stock: e.target.value, // Manter como string
-                })
-              }
-            />
-          </div>
-          <div className="flex w-full justify-end space-x-3 mt-4">
-            <button
-              onClick={handleCreateProduct}
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer"
-            >
-              Criar
-            </button>
-            <button
-              onClick={() => setShowProductForm(false)}
-              className="bg-red-400 text-white px-4 py-2 rounded hover:bg-red-500 cursor-pointer"
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Categoria */}
+      <div className="flex flex-col">
+        <label className="text-sm font-medium text-gray-700 mb-1">
+          Categoria
+        </label>
+        <input
+          type="text"
+          placeholder="Ex: Metal"
+          className="border rounded px-3 py-2"
+          value={newProduct.category}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, category: e.target.value })
+          }
+        />
+      </div>
+
+      {/* Preço por kg */}
+      <div className="flex flex-col">
+        <label className="text-sm font-medium text-gray-700 mb-1">
+          Preço por kg (R$)
+        </label>
+        <input
+          type="number"
+          placeholder="Ex: 9.90"
+          className="border rounded px-3 py-2"
+          value={newProduct.pricePerKg}
+          onChange={(e) =>
+            setNewProduct({
+              ...newProduct,
+              pricePerKg: e.target.value, // Mantém como string
+            })
+          }
+        />
+      </div>
+
+      {/* Estoque */}
+      <div className="flex flex-col">
+        <label className="text-sm font-medium text-gray-700 mb-1">
+          Estoque (kg)
+        </label>
+        <input
+          type="number"
+          placeholder="Ex: 50"
+          className="border rounded px-3 py-2"
+          value={newProduct.stock}
+          onChange={(e) =>
+            setNewProduct({
+              ...newProduct,
+              stock: e.target.value, // Mantém como string
+            })
+          }
+        />
+      </div>
+    </div>
+
+    {/* Botões */}
+    <div className="flex w-full justify-end space-x-2 mt-4">
+      <button
+        onClick={() => setShowProductForm(false)}
+        className="bg-red-400 text-white px-4 py-2 rounded hover:bg-red-500 cursor-pointer"
+      >
+        Cancelar
+      </button>
+      <button
+        onClick={handleCreateProduct}
+        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer"
+      >
+        Cadastrar
+      </button>
+    </div>
+  </div>
+)}
+
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="w-full">
