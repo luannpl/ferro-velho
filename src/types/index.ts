@@ -8,9 +8,25 @@ export type ProductData = {
 
 export type ClientData = {
   id: number;
-  name:  string
-  idade: number
-  email: string
-  telefone:  string
-  cpf: string
-}
+  name: string;
+  idade: number;
+  email: string;
+  telefone: string;
+  cpf: string;
+};
+
+export type FornecedorData = {
+  id: number;
+  name: string;
+  telefone?: string;
+  email?: string;
+};
+
+export type CompraData = {
+  id: number;
+  fornecedorId: number;
+  totalItens: number;
+  pesoTotal: number;
+  valorTotal: number;
+  dataCompra: Date;
+};

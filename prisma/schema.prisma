@@ -1,6 +1,6 @@
 datasource db {
-  provider  = "postgresql"
-  url  	    = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
   // uncomment next line if you use Prisma <5.10
   // directUrl = env("DATABASE_URL_UNPOOLED")
 }
@@ -10,22 +10,61 @@ generator client {
 }
 
 model Product {
-  id    Int    @id @default(autoincrement())
-  name  String
-  category String
-  pricePerKg Float
-  stock Float
+  id          Int          @id @default(autoincrement())
+  name        String
+  category    String
+  pricePerKg  Float
+  stock       Float
+  itensCompra ItemCompra[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Client {
+  id        Int      @id @default(autoincrement())
+  name      String
+  idade     Int
+  email     String
+  telefone  String
+  cpf       String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Client {
-  id  Int   @id @default(autoincrement())
-  name  String
-  idade Int
-  email String
-  telefone  String
-  cpf String
-  createdAt DateTime  @default(now())
+model Compra {
+  id           Int          @id @default(autoincrement())
+  fornecedorId Int
+  dataCompra   DateTime     @default(now())
+  totalItens   Int          @default(0)
+  pesoTotal    Decimal      @default(0.00)
+  valorTotal   Decimal      @default(0.00)
+  fornecedor   Fornecedor   @relation(fields: [fornecedorId], references: [id])
+  itens        ItemCompra[]
+
+  @@map("compras")
+}
+
+model ItemCompra {
+  id        Int     @id @default(autoincrement())
+  compraId  Int
+  produtoId Int
+  peso      Decimal
+  precoKg   Decimal
+  subtotal  Decimal @default(0.00)
+  compra    Compra  @relation(fields: [compraId], references: [id], onDelete: Cascade)
+  produto   Product @relation(fields: [produtoId], references: [id])
+
+  @@map("itens_compra")
+}
+
+model Fornecedor {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String?
+  telefone  String?
+  compras   Compra[]
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("fornecedores")
 }

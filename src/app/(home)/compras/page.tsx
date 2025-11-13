@@ -1,6 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Trash2, Package } from "lucide-react";
+import { Combobox } from "@headlessui/react";
+import { FornecedorData } from "@/types";
 
 interface PurchaseItem {
   productName: string;
@@ -20,8 +22,12 @@ interface Product {
   stock: number;
 }
 
+interface Supplier {
+  id: number;
+  name: string;
+}
+
 export default function ComprasPage() {
-  const [searchTerm, setSearchTerm] = useState("");
   const [purchaseItems, setPurchaseItems] = useState<PurchaseItem[]>([]);
   const [purchaseForm, setPurchaseForm] = useState({
     productName: "",
@@ -30,32 +36,49 @@ export default function ComprasPage() {
     pricePerKg: "",
     supplier: "",
   });
-  const [products, setProducts] = useState<Product[]>([
-    {
-      id: 1,
-      name: "Ferro",
-      category: "Metais",
-      weight: 150,
-      pricePerKg: 2.5,
-      stock: 150,
-    },
-    {
-      id: 2,
-      name: "Alumínio",
-      category: "Metais",
-      weight: 80,
-      pricePerKg: 5.8,
-      stock: 80,
-    },
-    {
-      id: 3,
-      name: "Cobre",
-      category: "Metais",
-      weight: 45,
-      pricePerKg: 25.0,
-      stock: 45,
-    },
-  ]);
+
+  const [fornecedores, setFornecedores] = useState<FornecedorData[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [productsRes, fornecedoresRes] = await Promise.all([
+          fetch("/api/products"),
+          fetch("/api/fornecedores"),
+        ]);
+
+        const [productsData, fornecedoresData] = await Promise.all([
+          productsRes.json(),
+          fornecedoresRes.json(),
+        ]);
+
+        setProducts(productsData);
+        setFornecedores(fornecedoresData);
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  // 🔹 Estados para busca nos selects
+  const [productQuery, setProductQuery] = useState("");
+  const [supplierQuery, setSupplierQuery] = useState("");
+
+  const filteredProducts =
+    productQuery === ""
+      ? products
+      : products.filter((p) =>
+          p.name.toLowerCase().includes(productQuery.toLowerCase())
+        );
+
+  const filteredSuppliers =
+    supplierQuery === ""
+      ? fornecedores
+      : fornecedores.filter((s) =>
+          s.name.toLowerCase().includes(supplierQuery.toLowerCase())
+        );
 
   const addPurchaseItem = () => {
     if (
@@ -67,9 +90,13 @@ export default function ComprasPage() {
       return;
     }
 
+    const selectedProduct = products.find(
+      (p) => p.name === purchaseForm.productName
+    );
+
     const newItem: PurchaseItem = {
       productName: purchaseForm.productName,
-      category: purchaseForm.category || "Sem categoria",
+      category: selectedProduct?.category || "Sem categoria",
       weight: parseFloat(purchaseForm.weight),
       pricePerKg: parseFloat(purchaseForm.pricePerKg),
       subtotal:
@@ -108,11 +135,6 @@ export default function ComprasPage() {
     setPurchaseItems([]);
   };
 
-  const filteredProducts = products.filter(
-    (p) =>
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Formulário de Compra */}
@@ -121,58 +143,93 @@ export default function ComprasPage() {
 
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <h3 className="text-xl font-bold mb-4">Adicionar Item</h3>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
+            {/* Produto (autocomplete) */}
+            <div className="md:col-span-1">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Produto *
               </label>
-              <input
-                type="text"
+              <Combobox
                 value={purchaseForm.productName}
-                onChange={(e) =>
+                onChange={(value) => {
+                  const selected = products.find((p) => p.name === value);
                   setPurchaseForm({
                     ...purchaseForm,
-                    productName: e.target.value,
-                  })
-                }
-                placeholder="Nome do produto"
-                className="w-full border rounded-lg px-3 py-2"
-              />
+                    productName: value || "",
+                    category: selected?.category || "",
+                    pricePerKg: selected ? selected.pricePerKg.toString() : "",
+                  });
+                }}
+              >
+                <div className="relative">
+                  <Combobox.Input
+                    className="w-full border rounded-lg px-3 py-2"
+                    placeholder="Selecione o produto"
+                    displayValue={(value: string) => value}
+                    onChange={(e) => setProductQuery(e.target.value)}
+                  />
+                  {filteredProducts.length > 0 && (
+                    <Combobox.Options className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-auto">
+                      {filteredProducts.map((product) => (
+                        <Combobox.Option
+                          key={product.id}
+                          value={product.name}
+                          className={({ active }) =>
+                            `cursor-pointer select-none px-3 py-2 ${
+                              active ? "bg-blue-100" : ""
+                            }`
+                          }
+                        >
+                          {product.name}
+                        </Combobox.Option>
+                      ))}
+                    </Combobox.Options>
+                  )}
+                </div>
+              </Combobox>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Categoria
-              </label>
-              <input
-                type="text"
-                value={purchaseForm.category}
-                onChange={(e) =>
-                  setPurchaseForm({
-                    ...purchaseForm,
-                    category: e.target.value,
-                  })
-                }
-                placeholder="Ex: Metais, Plásticos"
-                className="w-full border rounded-lg px-3 py-2"
-              />
-            </div>
+
+            {/* Fornecedor (autocomplete) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Fornecedor
               </label>
-              <input
-                type="text"
+              <Combobox
                 value={purchaseForm.supplier}
-                onChange={(e) =>
-                  setPurchaseForm({
-                    ...purchaseForm,
-                    supplier: e.target.value,
-                  })
+                onChange={(value) =>
+                  setPurchaseForm({ ...purchaseForm, supplier: value || "" })
                 }
-                placeholder="Nome do fornecedor"
-                className="w-full border rounded-lg px-3 py-2"
-              />
+              >
+                <div className="relative">
+                  <Combobox.Input
+                    className="w-full border rounded-lg px-3 py-2"
+                    placeholder="Selecione o fornecedor"
+                    displayValue={(value: string) => value}
+                    onChange={(e) => setSupplierQuery(e.target.value)}
+                  />
+                  {filteredSuppliers.length > 0 && (
+                    <Combobox.Options className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-auto">
+                      {filteredSuppliers.map((supplier) => (
+                        <Combobox.Option
+                          key={supplier.id}
+                          value={supplier.name}
+                          className={({ active }) =>
+                            `cursor-pointer select-none px-3 py-2 ${
+                              active ? "bg-blue-100" : ""
+                            }`
+                          }
+                        >
+                          {supplier.name}
+                        </Combobox.Option>
+                      ))}
+                    </Combobox.Options>
+                  )}
+                </div>
+              </Combobox>
             </div>
+
+            {/* Peso */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Peso (kg) *
@@ -192,6 +249,8 @@ export default function ComprasPage() {
                 className="w-full border rounded-lg px-3 py-2"
               />
             </div>
+
+            {/* Preço por KG */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Preço por kg *
@@ -212,6 +271,7 @@ export default function ComprasPage() {
               />
             </div>
           </div>
+
           <button
             onClick={addPurchaseItem}
             className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
@@ -221,7 +281,7 @@ export default function ComprasPage() {
           </button>
         </div>
 
-        {/* Lista de Itens da Compra */}
+        {/* Tabela de Itens */}
         {purchaseItems.length > 0 && (
           <div className="bg-white rounded-lg shadow">
             <div className="p-4 border-b">
@@ -284,7 +344,7 @@ export default function ComprasPage() {
         )}
       </div>
 
-      {/* Resumo da Compra */}
+      {/* Resumo */}
       <div className="lg:col-span-1">
         <div className="bg-white rounded-lg shadow p-6 sticky top-6">
           <h3 className="text-xl font-bold mb-4">Resumo da Compra</h3>
@@ -305,7 +365,7 @@ export default function ComprasPage() {
                   <span className="text-gray-600">Peso total:</span>
                   <span className="font-semibold">
                     {purchaseItems
-                      .reduce((sum, item) => sum + item.weight, 0)
+                      .reduce((sum, i) => sum + i.weight, 0)
                       .toFixed(2)}{" "}
                     kg
                   </span>
@@ -322,7 +382,7 @@ export default function ComprasPage() {
 
               <button
                 onClick={finalizePurchase}
-                className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-bold"
+                className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-bold cursor-pointer"
               >
                 Finalizar Compra
               </button>

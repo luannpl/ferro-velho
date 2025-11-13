@@ -1,6 +1,5 @@
 import { ProductData } from "@/types";
 import { productRepository } from "./product.repository";
-import { stat } from "fs";
 
 export const productService = {
   getAll: async () => {
