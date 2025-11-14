@@ -39,4 +39,36 @@ export const productService = {
       status: 200,
     };
   },
+  transferProduct: async (data: {
+    productOriginId: number;
+    productDestinationId: number;
+    quantity: number;
+  }) => {
+    const { productOriginId, productDestinationId, quantity } = data;
+
+    const productOrigin = await productRepository.findById(productOriginId);
+    const productDestination = await productRepository.findById(
+      productDestinationId
+    );
+
+    if (!productOrigin || !productDestination) {
+      throw new Error("Produto de origem ou destino não encontrado");
+    }
+
+    if (productOrigin.stock < quantity) {
+      throw new Error("Estoque insuficiente no produto de origem");
+    }
+
+    productOrigin.stock -= quantity;
+    productDestination.stock += quantity;
+
+    await productRepository.update(productOriginId, productOrigin);
+    await productRepository.update(productDestinationId, productDestination);
+
+    return {
+      message: "Transferência realizada com sucesso",
+      productOrigin,
+      productDestination,
+    };
+  },
 };

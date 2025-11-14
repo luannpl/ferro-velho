@@ -11,6 +11,7 @@ import {
   LucideIcon,
   CircleArrowLeft,
   Menu,
+  RefreshCcw,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
@@ -25,14 +26,18 @@ interface MenuItem {
 
 // Array com os itens do menu
 const menuItems: MenuItem[] = [
-  { id: "dashboard", icon: TrendingUp , label: "Dashboard", path: "/dashboard" },
-  { id: "categoria", icon: Settings, label: "Categoria", path: "/categoria" },
+  { id: "dashboard", icon: TrendingUp, label: "Dashboard", path: "/dashboard" },
   { id: "produtos", icon: Package, label: "Produtos", path: "/produtos" },
   { id: "compras", icon: DollarSign, label: "Compras", path: "/compras" },
   { id: "vendas", icon: ShoppingCart, label: "Vendas", path: "/vendas" },
+  {
+    id: "transferencia",
+    icon: RefreshCcw,
+    label: "Transferência",
+    path: "/transferencia",
+  },
   { id: "clientes", icon: Users, label: "Clientes", path: "/clientes" },
   { id: "fornecedor", icon: Users, label: "Fornecedor", path: "/fornecedor" },
-  { id: "configuracao", icon: Settings, label: "Configurações", path: "/configuracao" },
 ];
 
 // Componente da Sidebar
@@ -53,7 +58,7 @@ const Sidebar = ({
     >
       <div className="p-4">
         <h1 className="text-2xl font-bold mb-8">
-          <Link href='/'>Ferro Velho</Link>
+          <Link href="/">Ferro Velho</Link>
         </h1>
         <nav className="space-y-2">
           {menuItems.map((item) => (

@@ -10,21 +10,15 @@ interface PurchaseItem {
   weight: number;
   pricePerKg: number;
   subtotal: number;
-  supplier: string;
 }
 
 interface Product {
   id: number;
   name: string;
   category: string;
-  weight: number;
+  weight?: number;
   pricePerKg: number;
-  stock: number;
-}
-
-interface Supplier {
-  id: number;
-  name: string;
+  stock?: number;
 }
 
 export default function ComprasPage() {
@@ -34,11 +28,18 @@ export default function ComprasPage() {
     category: "",
     weight: "",
     pricePerKg: "",
-    supplier: "",
   });
 
   const [fornecedores, setFornecedores] = useState<FornecedorData[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+
+  // fornecedor escolhido para a nota (resumo)
+  const [selectedSupplier, setSelectedSupplier] = useState<string>("");
+
+  // queries para autocompletes
+  const [productQuery, setProductQuery] = useState("");
+  const [supplierQuery, setSupplierQuery] = useState("");
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -46,6 +47,11 @@ export default function ComprasPage() {
           fetch("/api/products"),
           fetch("/api/fornecedores"),
         ]);
+
+        if (!productsRes.ok || !fornecedoresRes.ok) {
+          console.error("Erro carregando produtos ou fornecedores");
+          return;
+        }
 
         const [productsData, fornecedoresData] = await Promise.all([
           productsRes.json(),
@@ -61,10 +67,6 @@ export default function ComprasPage() {
 
     fetchData();
   }, []);
-
-  // 🔹 Estados para busca nos selects
-  const [productQuery, setProductQuery] = useState("");
-  const [supplierQuery, setSupplierQuery] = useState("");
 
   const filteredProducts =
     productQuery === ""
@@ -90,54 +92,111 @@ export default function ComprasPage() {
       return;
     }
 
-    const selectedProduct = products.find(
-      (p) => p.name === purchaseForm.productName
-    );
+    const weight = parseFloat(purchaseForm.weight);
+    const pricePerKg = parseFloat(purchaseForm.pricePerKg);
+
+    if (isNaN(weight) || isNaN(pricePerKg)) {
+      alert("Peso ou preço inválido");
+      return;
+    }
 
     const newItem: PurchaseItem = {
       productName: purchaseForm.productName,
-      category: selectedProduct?.category || "Sem categoria",
-      weight: parseFloat(purchaseForm.weight),
-      pricePerKg: parseFloat(purchaseForm.pricePerKg),
-      subtotal:
-        parseFloat(purchaseForm.weight) * parseFloat(purchaseForm.pricePerKg),
-      supplier: purchaseForm.supplier || "Não informado",
+      category: purchaseForm.category || "Sem categoria",
+      weight,
+      pricePerKg,
+      subtotal: +(weight * pricePerKg).toFixed(2),
     };
 
-    setPurchaseItems([...purchaseItems, newItem]);
+    setPurchaseItems((prev) => [...prev, newItem]);
+
+    // limpa apenas os campos do item (mantemos selectedSupplier)
     setPurchaseForm({
       productName: "",
       category: "",
       weight: "",
       pricePerKg: "",
-      supplier: "",
     });
+    setProductQuery("");
   };
 
   const removePurchaseItem = (index: number) => {
-    setPurchaseItems(purchaseItems.filter((_, i) => i !== index));
+    setPurchaseItems((prev) => prev.filter((_, i) => i !== index));
   };
 
   const getTotalPurchase = () => {
     return purchaseItems.reduce((sum, item) => sum + item.subtotal, 0);
   };
 
-  const finalizePurchase = () => {
+  const finalizePurchase = async () => {
     if (purchaseItems.length === 0) {
       alert("Adicione itens à compra!");
       return;
     }
-    alert(
-      `Compra finalizada! Total: R$ ${getTotalPurchase().toFixed(
-        2
-      )}\nEstoque será atualizado.`
-    );
-    setPurchaseItems([]);
+
+    if (!selectedSupplier) {
+      alert("Selecione um fornecedor para a nota antes de finalizar.");
+      return;
+    }
+
+    const fornecedor = fornecedores.find((f) => f.name === selectedSupplier);
+    if (!fornecedor) {
+      alert("Fornecedor selecionado inválido.");
+      return;
+    }
+
+    const totalPeso = purchaseItems.reduce((sum, i) => sum + i.weight, 0);
+    const totalValor = purchaseItems.reduce((sum, i) => sum + i.subtotal, 0);
+
+    const payload = {
+      fornecedorId: fornecedor.id,
+      totalItens: purchaseItems.length,
+      pesoTotal: totalPeso,
+      valorTotal: totalValor,
+      dataCompra: new Date(),
+      // itens: purchaseItems.map((item) => ({
+      //   produtoId: products.find((p) => p.name === item.productName)?.id,
+      //   peso: item.weight,
+      //   precoKg: item.pricePerKg,
+      //   subtotal: item.subtotal,
+      // })),
+    };
+
+    console.log("Payload da compra:", payload);
+
+    try {
+      const res = await fetch("/api/compras", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        alert("Compra registrada com sucesso!");
+        // limpa tudo
+        setPurchaseItems([]);
+        setSelectedSupplier("");
+        setPurchaseForm({
+          productName: "",
+          category: "",
+          weight: "",
+          pricePerKg: "",
+        });
+      } else {
+        console.error("Erro ao salvar compra:", result);
+        alert("Erro ao salvar: " + (result?.error || "Erro desconhecido"));
+      }
+    } catch (err) {
+      console.error("Erro ao salvar compra:", err);
+      alert("Erro ao salvar a compra.");
+    }
   };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Formulário de Compra */}
+      {/* Formulário de Compra (itens) */}
       <div className="lg:col-span-2">
         <h2 className="text-3xl font-bold mb-6">Nova Compra</h2>
 
@@ -154,19 +213,21 @@ export default function ComprasPage() {
                 value={purchaseForm.productName}
                 onChange={(value) => {
                   const selected = products.find((p) => p.name === value);
-                  setPurchaseForm({
-                    ...purchaseForm,
+                  setPurchaseForm((prev) => ({
+                    ...prev,
                     productName: value || "",
                     category: selected?.category || "",
-                    pricePerKg: selected ? selected.pricePerKg.toString() : "",
-                  });
+                    pricePerKg: selected
+                      ? String(selected.pricePerKg)
+                      : prev.pricePerKg,
+                  }));
                 }}
               >
                 <div className="relative">
                   <Combobox.Input
                     className="w-full border rounded-lg px-3 py-2"
                     placeholder="Selecione o produto"
-                    displayValue={(value: string) => value}
+                    displayValue={(v: string) => v}
                     onChange={(e) => setProductQuery(e.target.value)}
                   />
                   {filteredProducts.length > 0 && (
@@ -181,7 +242,12 @@ export default function ComprasPage() {
                             }`
                           }
                         >
-                          {product.name}
+                          <div className="flex justify-between">
+                            <span>{product.name}</span>
+                            <span className="text-sm text-gray-500">
+                              R$ {product.pricePerKg}
+                            </span>
+                          </div>
                         </Combobox.Option>
                       ))}
                     </Combobox.Options>
@@ -190,43 +256,21 @@ export default function ComprasPage() {
               </Combobox>
             </div>
 
-            {/* Fornecedor (autocomplete) */}
+            {/* Categoria (apenas visual, preenchida automaticamente) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Fornecedor
+                Categoria
               </label>
-              <Combobox
-                value={purchaseForm.supplier}
-                onChange={(value) =>
-                  setPurchaseForm({ ...purchaseForm, supplier: value || "" })
+              <input
+                type="text"
+                value={purchaseForm.category}
+                onChange={(e) =>
+                  setPurchaseForm({ ...purchaseForm, category: e.target.value })
                 }
-              >
-                <div className="relative">
-                  <Combobox.Input
-                    className="w-full border rounded-lg px-3 py-2"
-                    placeholder="Selecione o fornecedor"
-                    displayValue={(value: string) => value}
-                    onChange={(e) => setSupplierQuery(e.target.value)}
-                  />
-                  {filteredSuppliers.length > 0 && (
-                    <Combobox.Options className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-auto">
-                      {filteredSuppliers.map((supplier) => (
-                        <Combobox.Option
-                          key={supplier.id}
-                          value={supplier.name}
-                          className={({ active }) =>
-                            `cursor-pointer select-none px-3 py-2 ${
-                              active ? "bg-blue-100" : ""
-                            }`
-                          }
-                        >
-                          {supplier.name}
-                        </Combobox.Option>
-                      ))}
-                    </Combobox.Options>
-                  )}
-                </div>
-              </Combobox>
+                placeholder="Categoria"
+                className="w-full border rounded-lg px-3 py-2 bg-white"
+                readOnly
+              />
             </div>
 
             {/* Peso */}
@@ -238,10 +282,7 @@ export default function ComprasPage() {
                 type="number"
                 value={purchaseForm.weight}
                 onChange={(e) =>
-                  setPurchaseForm({
-                    ...purchaseForm,
-                    weight: e.target.value,
-                  })
+                  setPurchaseForm({ ...purchaseForm, weight: e.target.value })
                 }
                 placeholder="0.00"
                 step="0.1"
@@ -274,14 +315,14 @@ export default function ComprasPage() {
 
           <button
             onClick={addPurchaseItem}
-            className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+            className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2 cursor-pointer"
           >
             <Plus size={20} />
             <span>Adicionar à Compra</span>
           </button>
         </div>
 
-        {/* Tabela de Itens */}
+        {/* Tabela de Itens (sem fornecedor por item) */}
         {purchaseItems.length > 0 && (
           <div className="bg-white rounded-lg shadow">
             <div className="p-4 border-b">
@@ -296,9 +337,6 @@ export default function ComprasPage() {
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       Categoria
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Fornecedor
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       Peso
@@ -319,7 +357,6 @@ export default function ComprasPage() {
                     <tr key={index}>
                       <td className="px-4 py-3">{item.productName}</td>
                       <td className="px-4 py-3">{item.category}</td>
-                      <td className="px-4 py-3">{item.supplier}</td>
                       <td className="px-4 py-3">{item.weight} kg</td>
                       <td className="px-4 py-3">
                         R$ {item.pricePerKg.toFixed(2)}
@@ -344,10 +381,47 @@ export default function ComprasPage() {
         )}
       </div>
 
-      {/* Resumo */}
-      <div className="lg:col-span-1">
+      {/* Resumo da Compra (aqui escolhe o fornecedor) */}
+      <div className="lg:col-span-1 mt-[60px]">
         <div className="bg-white rounded-lg shadow p-6 sticky top-6">
           <h3 className="text-xl font-bold mb-4">Resumo da Compra</h3>
+
+          {/* Combobox do Fornecedor (no resumo) */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Fornecedor *
+            </label>
+            <Combobox
+              value={selectedSupplier}
+              onChange={(v) => setSelectedSupplier(v || "")}
+            >
+              <div className="relative">
+                <Combobox.Input
+                  className="w-full border rounded-lg px-3 py-2"
+                  placeholder="Selecione o fornecedor"
+                  displayValue={(v: string) => v}
+                  onChange={(e) => setSupplierQuery(e.target.value)}
+                />
+                {filteredSuppliers.length > 0 && (
+                  <Combobox.Options className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-auto">
+                    {filteredSuppliers.map((s) => (
+                      <Combobox.Option
+                        key={s.id}
+                        value={s.name}
+                        className={({ active }) =>
+                          `cursor-pointer select-none px-3 py-2 ${
+                            active ? "bg-blue-100" : ""
+                          }`
+                        }
+                      >
+                        {s.name}
+                      </Combobox.Option>
+                    ))}
+                  </Combobox.Options>
+                )}
+              </div>
+            </Combobox>
+          </div>
 
           {purchaseItems.length === 0 ? (
             <div className="text-center py-8">
@@ -382,7 +456,12 @@ export default function ComprasPage() {
 
               <button
                 onClick={finalizePurchase}
-                className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-bold cursor-pointer"
+                className={`w-full py-3 rounded-lg font-bold ${
+                  selectedSupplier
+                    ? "bg-green-600 text-white hover:bg-green-700"
+                    : "bg-gray-300 text-gray-700 cursor-not-allowed"
+                }`}
+                disabled={!selectedSupplier}
               >
                 Finalizar Compra
               </button>
