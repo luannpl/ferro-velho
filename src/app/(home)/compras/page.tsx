@@ -5,8 +5,10 @@ import { Combobox } from "@headlessui/react";
 import { Input, Select } from "antd";
 
 import { FornecedorData } from "@/types";
+import PurchaseHistory from "@/components/PurchaseHistory";
 
 interface PurchaseItem {
+  productId: number;
   productName: string;
   category: string;
   weight: number;
@@ -29,6 +31,16 @@ type OptionType = {
   value?: string;
 };
 
+interface Compra {
+  id: number;
+  fornecedor: {
+    name: string;
+  };
+  dataCompra: string;
+  totalItens: number;
+  valorTotal: number;
+}
+
 export default function ComprasPage() {
   const [purchaseItems, setPurchaseItems] = useState<PurchaseItem[]>([]);
   const [purchaseForm, setPurchaseForm] = useState({
@@ -45,6 +57,22 @@ export default function ComprasPage() {
 
   const [productQuery, setProductQuery] = useState("");
   const [supplierQuery, setSupplierQuery] = useState("");
+
+  const [compras, setCompras] = useState<Compra[]>([]);
+
+  const fetchCompras = async () => {
+    try {
+      const res = await fetch("/api/compras");
+      if (res.ok) {
+        const data = await res.json();
+        setCompras(data);
+      } else {
+        console.error("Erro ao carregar compras");
+      }
+    } catch (error) {
+      console.error("Erro ao carregar compras:", error);
+    }
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -72,6 +100,7 @@ export default function ComprasPage() {
     }
 
     fetchData();
+    fetchCompras();
   }, []);
 
   const filteredProducts =
@@ -89,11 +118,15 @@ export default function ComprasPage() {
         );
 
   const addPurchaseItem = () => {
-    if (
-      !purchaseForm.productName ||
-      !purchaseForm.weight ||
-      !purchaseForm.pricePerKg
-    ) {
+    const selectedProduct = products.find(
+      (p) => p.name === purchaseForm.productName
+    );
+    if (!selectedProduct) {
+      alert("Produto selecionado inválido!");
+      return;
+    }
+
+    if (!purchaseForm.weight || !purchaseForm.pricePerKg) {
       alert("Preencha todos os campos obrigatórios!");
       return;
     }
@@ -107,6 +140,7 @@ export default function ComprasPage() {
     }
 
     const newItem: PurchaseItem = {
+      productId: selectedProduct.id,
       productName: purchaseForm.productName,
       category: purchaseForm.category || "Sem categoria",
       weight,
@@ -159,6 +193,12 @@ export default function ComprasPage() {
       pesoTotal: totalPeso,
       valorTotal: totalValor,
       dataCompra: new Date(),
+      items: purchaseItems.map((item) => ({
+        productId: item.productId,
+        quantity: item.weight,
+        pricePerKg: item.pricePerKg,
+        subtotal: item.subtotal,
+      })),
     };
 
     console.log("Payload da compra:", payload);
@@ -182,6 +222,7 @@ export default function ComprasPage() {
           weight: "",
           pricePerKg: "",
         });
+        fetchCompras();
       } else {
         console.error("Erro ao salvar compra:", result);
         alert("Erro ao salvar: " + (result?.error || "Erro desconhecido"));
@@ -193,12 +234,13 @@ export default function ComprasPage() {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2">
-        <h2 className="text-3xl font-bold mb-6">Nova Compra</h2>
+    <div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <h2 className="text-3xl font-bold mb-6">Nova Compra</h2>
 
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h3 className="text-xl font-bold mb-4">Adicionar Item</h3>
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h3 className="text-xl font-bold mb-4">Adicionar Item</h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Produto (Select do AntD) */}
@@ -429,6 +471,10 @@ export default function ComprasPage() {
             </>
           )}
         </div>
+      </div>
+    </div>
+      <div className="mt-8">
+        <PurchaseHistory compras={compras} />
       </div>
     </div>
   );
