@@ -22,11 +22,18 @@ export type FornecedorData = {
   email?: string;
 };
 
+export type CompraItem = {
+  productId: number;
+  quantity: number;
+  pricePerKg: number;
+  subtotal: number;
+};
+
 export type CompraData = {
-  id: number;
   fornecedorId: number;
   totalItens: number;
   pesoTotal: number;
   valorTotal: number;
   dataCompra: Date;
+  items: CompraItem[];
 };
