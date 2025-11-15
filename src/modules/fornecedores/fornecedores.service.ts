@@ -13,7 +13,13 @@ export const fornecedorService = {
       fornecedor,
     };
   },
+
   findById: async (id: number) => {
     return await fornecedorRepository.findById(id);
   },
+
+  update: async (id: number, data: FornecedorData) =>
+    fornecedorRepository.update(id, data),
+
+  delete: async (id: number) => fornecedorRepository.delete(id),
 };
