@@ -21,8 +21,8 @@ export const productService = {
     };
   },
 
-  update: async (id: number, data: ProductData) => {
-    return await productRepository.update(id, data);
+  update: async (id: number, data: Partial<ProductData>, tx?: any) => {
+    return await productRepository.update(id, data, tx);
   },
 
   delete: async (id: number) => {
