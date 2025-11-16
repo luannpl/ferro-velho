@@ -114,7 +114,7 @@ export default function ComprasPage() {
     return purchaseItems.reduce((sum, item) => sum + item.subtotal, 0);
   };
 
-  const finalizePurchase = async () => {
+const finalizePurchase = async () => {
     if (purchaseItems.length === 0) {
       alert("Adicione itens à compra!");
       return;
@@ -131,15 +131,39 @@ export default function ComprasPage() {
       return;
     }
 
-    const totalPeso = purchaseItems.reduce((sum, i) => sum + i.weight, 0);
-    const totalValor = purchaseItems.reduce((sum, i) => sum + i.subtotal, 0);
+    // 1. Mapear purchaseItems para o formato de ItemCompraData, buscando o ID
+    const itensCompraData = purchaseItems.map((item) => {
+      const productFound = products.find(
+        (p) => p.name === item.productName
+      );
 
+      if (!productFound) {
+        throw new Error(
+          `Produto "${item.productName}" não encontrado para mapeamento de ID.`
+        );
+      }
+
+      return {
+        produtoId: productFound.id, // ESSENCIAL: ID do produto
+        peso: item.weight,
+        precoKg: item.pricePerKg,
+        subtotal: item.subtotal,
+      };
+    });
+    
+    // 2. Calcular Totais
+    const totalPeso = itensCompraData.reduce((sum, i) => sum + i.peso, 0);
+    const totalValor = itensCompraData.reduce((sum, i) => sum + i.subtotal, 0);
+
+    // 3. Montar o Payload COMPLETO, incluindo 'itens'
     const payload = {
       fornecedorId: fornecedor.id,
-      totalItens: purchaseItems.length,
+      totalItens: itensCompraData.length,
       pesoTotal: totalPeso,
       valorTotal: totalValor,
       dataCompra: new Date(),
+      // NOVO: Adicione o array de itens mapeados
+      itens: itensCompraData, 
     };
 
     console.log("Payload da compra:", payload);

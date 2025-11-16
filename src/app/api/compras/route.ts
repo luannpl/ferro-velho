@@ -11,8 +11,7 @@ export async function POST(req: Request) {
     const data = await req.json();
     const compra = await compraService.create(data);
     return NextResponse.json(compra, { status: 201 });
-    //eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ error: error.message || "Erro desconhecido ao processar a compra." }, { status: 400 });
   }
 }
