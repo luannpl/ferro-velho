@@ -15,7 +15,7 @@ interface Product {
 }
 
 export default function DashboardPage() {
-    const [products, setProducts] = useState<Product[]>([
+    const [products] = useState<Product[]>([
         {
             id: 1,
             name: "Ferro",

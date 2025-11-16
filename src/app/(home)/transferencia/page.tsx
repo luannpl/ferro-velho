@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { ArrowRightLeft, Package } from "lucide-react";
+import { ArrowRightLeft} from "lucide-react";
 import { Combobox } from "@headlessui/react";
 
 interface TransferItem {
@@ -121,35 +121,32 @@ export default function TransferenciaPage() {
       quantity: weight,
     };
 
-    try {
-      // Enviando para a rota que você especificou
-      const res = await fetch("/api/products/transferencia", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+    // Enviando para a rota que você especificou
+    const res = await fetch("/api/products/transferencia", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await res.json();
+
+    if (res.ok) {
+      alert("Transferência registrada com sucesso!");
+
+      setTransferForm({
+        productOrigin: "",
+        categoryOrigin: "",
+        productDestination: "",
+        categoryDestination: "",
+        weight: "",
       });
 
-      const result = await res.json();
-
-      if (res.ok) {
-        alert("Transferência registrada com sucesso!");
-
-        setTransferForm({
-          productOrigin: "",
-          categoryOrigin: "",
-          productDestination: "",
-          categoryDestination: "",
-          weight: "",
-        });
-
-        setCurrentTransferItem(null);
-        setModalOpen(false);
-      } else {
-        alert("Erro ao salvar: " + (result?.error || "Erro desconhecido"));
-      }
-    } catch (err) {
-      alert("Erro ao salvar a transferência.");
+      setCurrentTransferItem(null);
+      setModalOpen(false);
+    } else {
+      alert("Erro ao salvar: " + (result?.error || "Erro desconhecido"));
     }
+
   };
 
   return (

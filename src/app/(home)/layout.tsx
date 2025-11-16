@@ -7,7 +7,6 @@ import {
   DollarSign,
   ShoppingCart,
   Users,
-  Settings,
   LucideIcon,
   CircleArrowLeft,
   Menu,

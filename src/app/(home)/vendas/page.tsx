@@ -21,7 +21,7 @@ interface Product {
 export default function VendasPage() {
   const [saleItems, setSaleItems] = useState<SaleItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [products, setProducts] = useState<Product[]>([
+  const [products] = useState<Product[]>([
     {
       id: 1,
       name: "Ferro",

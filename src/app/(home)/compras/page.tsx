@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Plus, Trash2, Package } from "lucide-react";
-import { Combobox } from "@headlessui/react";
 import { Input, Select } from "antd";
 
 import { FornecedorData } from "@/types";
@@ -43,9 +42,6 @@ export default function ComprasPage() {
 
   const [selectedSupplier, setSelectedSupplier] = useState<string>("");
 
-  const [productQuery, setProductQuery] = useState("");
-  const [supplierQuery, setSupplierQuery] = useState("");
-
   useEffect(() => {
     async function fetchData() {
       try {
@@ -73,20 +69,6 @@ export default function ComprasPage() {
 
     fetchData();
   }, []);
-
-  const filteredProducts =
-    productQuery === ""
-      ? products
-      : products.filter((p) =>
-          p.name.toLowerCase().includes(productQuery.toLowerCase())
-        );
-
-  const filteredSuppliers =
-    supplierQuery === ""
-      ? fornecedores
-      : fornecedores.filter((s) =>
-          s.name.toLowerCase().includes(supplierQuery.toLowerCase())
-        );
 
   const addPurchaseItem = () => {
     if (
@@ -122,7 +104,6 @@ export default function ComprasPage() {
       weight: "",
       pricePerKg: "",
     });
-    setProductQuery("");
   };
 
   const removePurchaseItem = (index: number) => {
