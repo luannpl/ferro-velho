@@ -1,4 +1,4 @@
-import { CompraData, ItemCompraData } from "@/types";
+import { CompraData} from "@/types";
 import { compraRepository } from "./compra.repository";
 import { fornecedorService } from "../fornecedores/fornecedores.service";
 import { prisma } from "@/lib/prisma";
