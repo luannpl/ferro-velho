@@ -5,6 +5,22 @@ import { Input, Select } from "antd";
 
 import { FornecedorData } from "@/types";
 
+interface CupomItem {
+  nome: string;
+  quantidade: number;
+  precoUnitario: number;
+  precoTotal: number;
+}
+
+interface CupomData {
+  ferroVelho: string;
+  dataCompra: string;
+  totalItens: number;
+  valorTotal: number;
+  fornecedor: { nome: string; telefone?: string };
+  itens: CupomItem[];
+}
+
 interface PurchaseItem {
   productName: string;
   category: string;
@@ -114,7 +130,7 @@ export default function ComprasPage() {
     return purchaseItems.reduce((sum, item) => sum + item.subtotal, 0);
   };
 
-  async function imprimirCupom(dados: any) {
+  async function imprimirCupom(dados: CupomData) {
     try {
       // Selecionar a impressora
       const device = await navigator.usb.requestDevice({
@@ -137,7 +153,7 @@ export default function ComprasPage() {
      ITEM          KG     TOTAL
      ------------------------------
      ${dados.itens
-          .map((i: any) => `${i.nome}  ${i.quantidade}kg  R$${i.precoTotal}`)
+          .map((i: CupomItem) => `${i.nome}  ${i.quantidade}kg  R$${i.precoTotal}`)
           .join("\n")}
      ------------------------------
      TOTAL PAGO: R$ ${dados.valorTotal}
@@ -470,8 +486,8 @@ export default function ComprasPage() {
               <button
                 onClick={finalizePurchase}
                 className={`w-full py-3 rounded-lg font-bold ${selectedSupplier
-                    ? "bg-green-600 text-white hover:bg-green-700"
-                    : "bg-gray-300 text-gray-700 cursor-not-allowed"
+                  ? "bg-green-600 text-white hover:bg-green-700"
+                  : "bg-gray-300 text-gray-700 cursor-not-allowed"
                   }`}
                 disabled={!selectedSupplier}
               >
