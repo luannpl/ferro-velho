@@ -114,7 +114,49 @@ export default function ComprasPage() {
     return purchaseItems.reduce((sum, item) => sum + item.subtotal, 0);
   };
 
-const finalizePurchase = async () => {
+  async function imprimirCupom(dados: any) {
+    try {
+      // Selecionar a impressora
+      const device = await navigator.usb.requestDevice({
+        filters: [{ vendorId: 0x04b8 }] // Epson
+      });
+
+      await device.open();
+      await device.selectConfiguration(1);
+      await device.claimInterface(0);
+
+      // Montar comandos ESC/POS (texto simples)
+      const encoder = new TextEncoder();
+
+      const texto = `
+     ${dados.ferroVelho}
+     Compra: ${dados.dataCompra}
+     Fornecedor: ${dados.fornecedor.nome}
+
+     ------------------------------
+     ITEM          KG     TOTAL
+     ------------------------------
+     ${dados.itens
+          .map((i: any) => `${i.nome}  ${i.quantidade}kg  R$${i.precoTotal}`)
+          .join("\n")}
+     ------------------------------
+     TOTAL PAGO: R$ ${dados.valorTotal}
+
+    `;
+
+      const comando = encoder.encode(texto);
+
+      // Enviar para a impressora
+      await device.transferOut(1, comando);
+
+      alert("Cupom enviado para impressora!");
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao imprimir: " + err);
+    }
+  }
+
+  const finalizePurchase = async () => {
     if (purchaseItems.length === 0) {
       alert("Adicione itens à compra!");
       return;
@@ -150,7 +192,7 @@ const finalizePurchase = async () => {
         subtotal: item.subtotal,
       };
     });
-    
+
     // 2. Calcular Totais
     const totalPeso = itensCompraData.reduce((sum, i) => sum + i.peso, 0);
     const totalValor = itensCompraData.reduce((sum, i) => sum + i.subtotal, 0);
@@ -163,7 +205,7 @@ const finalizePurchase = async () => {
       valorTotal: totalValor,
       dataCompra: new Date(),
       // NOVO: Adicione o array de itens mapeados
-      itens: itensCompraData, 
+      itens: itensCompraData,
     };
 
     console.log("Payload da compra:", payload);
@@ -178,15 +220,24 @@ const finalizePurchase = async () => {
       const result = await res.json();
 
       if (res.ok) {
-        alert("Compra registrada com sucesso!");
-        setPurchaseItems([]);
-        setSelectedSupplier("");
-        setPurchaseForm({
-          productName: "",
-          category: "",
-          weight: "",
-          pricePerKg: "",
-        });
+        const printPayload = {
+          ferroVelho: "Oswaldo Reciclagens",
+          dataCompra: new Date().toLocaleString("pt-BR"),
+          totalItens: purchaseItems.length,
+          valorTotal: totalValor,
+          fornecedor: {
+            nome: fornecedor.name,
+            telefone: fornecedor.telefone
+          },
+          itens: purchaseItems.map(i => ({
+            nome: i.productName,
+            quantidade: i.weight,
+            precoUnitario: i.pricePerKg,
+            precoTotal: i.subtotal
+          }))
+        };
+
+        await imprimirCupom(printPayload);
       } else {
         console.error("Erro ao salvar compra:", result);
         alert("Erro ao salvar: " + (result?.error || "Erro desconhecido"));
@@ -418,11 +469,10 @@ const finalizePurchase = async () => {
 
               <button
                 onClick={finalizePurchase}
-                className={`w-full py-3 rounded-lg font-bold ${
-                  selectedSupplier
+                className={`w-full py-3 rounded-lg font-bold ${selectedSupplier
                     ? "bg-green-600 text-white hover:bg-green-700"
                     : "bg-gray-300 text-gray-700 cursor-not-allowed"
-                }`}
+                  }`}
                 disabled={!selectedSupplier}
               >
                 Finalizar Compra
