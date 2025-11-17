@@ -32,3 +32,23 @@ export async function GET(
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 }
+
+export async function PATCH(req: Request, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
+  const productId = Number(id);
+
+  if (isNaN(productId)) {
+    return NextResponse.json({ error: "ID inválido" }, { status: 400 });
+  }
+
+  const data = await req.json();
+  const updatedProduct = await productService.update(productId, data);
+
+  return NextResponse.json(
+    {
+      message: "Produto atualizado com sucesso",
+      product: updatedProduct,
+    },
+    { status: 200 }
+  );
+}

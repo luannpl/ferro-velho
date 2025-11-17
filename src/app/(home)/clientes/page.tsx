@@ -99,7 +99,7 @@ export default function ClientePage() {
 
     if (response.ok) {
       fetchClient();
-      setEditClient(null); // fecha o dialog
+      setEditClient(null);
     } else {
       const error = await response.json();
       alert("Erro ao atualizar: " + error.message);

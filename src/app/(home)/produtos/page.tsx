@@ -1,6 +1,24 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+
 
 interface Product {
   id: number;
@@ -14,6 +32,9 @@ interface Product {
 export default function ProdutosPage() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
+  const [deleteProductId, setDeleteProductId] = useState<number | null>(null)
+  const [editProduct, setEditProduct] = useState<Product | null>(null)
+
   const [newProduct, setNewProduct] = useState({
     name: "",
     category: "",
@@ -59,6 +80,41 @@ export default function ProdutosPage() {
     }
   };
 
+  const confirmDeleteProduct = async () => {
+    if (!deleteProductId) return;
+
+    const response = await fetch(`/api/products/${deleteProductId}`, {
+      method: "DELETE",
+    });
+
+    if (response.ok) {
+      fetchProducts();
+    } else {
+      const error = await response.json();
+      alert("Erro ao deletar: " + error.message);
+    }
+
+    setDeleteProductId(null);
+  };
+
+  const handleUpdateProduct = async () => {
+    if (!editProduct) return;
+
+    const response = await fetch(`/api/products/${editProduct.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(editProduct),
+    });
+
+    if (response.ok) {
+      fetchProducts();
+      setEditProduct(null);
+    } else {
+      const error = await response.json();
+      alert("Erro ao atualizar: " + error.message);
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -73,97 +129,97 @@ export default function ProdutosPage() {
       </div>
 
       {showProductForm && (
-  <div className="bg-white p-6 rounded-lg shadow mb-6">
-    <h3 className="text-xl font-bold mb-4">Cadastrar Produto</h3>
-    <div className="grid grid-cols-2 gap-4">
-      {/* Nome do produto */}
-      <div className="flex flex-col">
-        <label className="text-sm font-medium text-gray-700 mb-1">
-          Nome do produto
-        </label>
-        <input
-          type="text"
-          placeholder="Ex: Geladeira"
-          className="border rounded px-3 py-2"
-          value={newProduct.name}
-          onChange={(e) =>
-            setNewProduct({ ...newProduct, name: e.target.value })
-          }
-        />
-      </div>
+        <div className="bg-white p-6 rounded-lg shadow mb-6">
+          <h3 className="text-xl font-bold mb-4">Cadastrar Produto</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {/* Nome do produto */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-1">
+                Nome do produto
+              </label>
+              <input
+                type="text"
+                placeholder="Ex: Geladeira"
+                className="border rounded px-3 py-2"
+                value={newProduct.name}
+                onChange={(e) =>
+                  setNewProduct({ ...newProduct, name: e.target.value })
+                }
+              />
+            </div>
 
-      {/* Categoria */}
-      <div className="flex flex-col">
-        <label className="text-sm font-medium text-gray-700 mb-1">
-          Categoria
-        </label>
-        <input
-          type="text"
-          placeholder="Ex: Metal"
-          className="border rounded px-3 py-2"
-          value={newProduct.category}
-          onChange={(e) =>
-            setNewProduct({ ...newProduct, category: e.target.value })
-          }
-        />
-      </div>
+            {/* Categoria */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-1">
+                Categoria
+              </label>
+              <input
+                type="text"
+                placeholder="Ex: Metal"
+                className="border rounded px-3 py-2"
+                value={newProduct.category}
+                onChange={(e) =>
+                  setNewProduct({ ...newProduct, category: e.target.value })
+                }
+              />
+            </div>
 
-      {/* Preço por kg */}
-      <div className="flex flex-col">
-        <label className="text-sm font-medium text-gray-700 mb-1">
-          Preço por kg (R$)
-        </label>
-        <input
-          type="number"
-          placeholder="Ex: 9.90"
-          className="border rounded px-3 py-2"
-          value={newProduct.pricePerKg}
-          onChange={(e) =>
-            setNewProduct({
-              ...newProduct,
-              pricePerKg: e.target.value, // Mantém como string
-            })
-          }
-        />
-      </div>
+            {/* Preço por kg */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-1">
+                Preço por kg (R$)
+              </label>
+              <input
+                type="number"
+                placeholder="Ex: 9.90"
+                className="border rounded px-3 py-2"
+                value={newProduct.pricePerKg}
+                onChange={(e) =>
+                  setNewProduct({
+                    ...newProduct,
+                    pricePerKg: e.target.value, // Mantém como string
+                  })
+                }
+              />
+            </div>
 
-      {/* Estoque */}
-      <div className="flex flex-col">
-        <label className="text-sm font-medium text-gray-700 mb-1">
-          Estoque (kg)
-        </label>
-        <input
-          type="number"
-          placeholder="Ex: 50"
-          className="border rounded px-3 py-2"
-          value={newProduct.stock}
-          onChange={(e) =>
-            setNewProduct({
-              ...newProduct,
-              stock: e.target.value, // Mantém como string
-            })
-          }
-        />
-      </div>
-    </div>
+            {/* Estoque */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-1">
+                Estoque (kg)
+              </label>
+              <input
+                type="number"
+                placeholder="Ex: 50"
+                className="border rounded px-3 py-2"
+                value={newProduct.stock}
+                onChange={(e) =>
+                  setNewProduct({
+                    ...newProduct,
+                    stock: e.target.value, // Mantém como string
+                  })
+                }
+              />
+            </div>
+          </div>
 
-    {/* Botões */}
-    <div className="flex w-full justify-end space-x-2 mt-4">
-      <button
-        onClick={() => setShowProductForm(false)}
-        className="bg-red-400 text-white px-4 py-2 rounded hover:bg-red-500 cursor-pointer"
-      >
-        Cancelar
-      </button>
-      <button
-        onClick={handleCreateProduct}
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer"
-      >
-        Cadastrar
-      </button>
-    </div>
-  </div>
-)}
+          {/* Botões */}
+          <div className="flex w-full justify-end space-x-2 mt-4">
+            <button
+              onClick={() => setShowProductForm(false)}
+              className="bg-red-400 text-white px-4 py-2 rounded hover:bg-red-500 cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleCreateProduct}
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer"
+            >
+              Cadastrar
+            </button>
+          </div>
+        </div>
+      )}
 
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -201,10 +257,16 @@ export default function ProdutosPage() {
                   R$ {product.pricePerKg.toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <button className="text-blue-600 hover:text-blue-800 mr-3">
+                  <button
+                    onClick={() => setEditProduct(product)}
+                    className="text-blue-600 hover:text-blue-800 mr-3"
+                  >
                     <Edit2 size={18} />
                   </button>
-                  <button className="text-red-600 hover:text-red-800">
+                  <button
+                    onClick={() => setDeleteProductId(product.id)}
+                    className="text-red-600 hover:text-red-800"
+                  >
                     <Trash2 size={18} />
                   </button>
                 </td>
@@ -213,6 +275,54 @@ export default function ProdutosPage() {
           </tbody>
         </table>
       </div>
+      {/* DIALOG DE EDIÇÃO */}
+      <Dialog open={!!editProduct} onOpenChange={(open) => !open && setEditProduct(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Produto</DialogTitle>
+            <DialogDescription>Altere as informações e clique em “Salvar”.</DialogDescription>
+          </DialogHeader>
+
+          {editProduct && (
+            <div className='grid grid-cols-2 gap-4'>
+              <input type="text" placeholder="Nome" className="border rounded px-3 py-2"
+                value={editProduct.name} onChange={(e) => setEditProduct({ ...editProduct, name: e.target.value })} />
+              <input type="text" placeholder="Categoria" className="border rounded px-3 py-2"
+                value={editProduct.category} onChange={(e) => setEditProduct({ ...editProduct, category: e.target.value })} />
+              <input type="number" placeholder="Preço por kg" className="border rounded px-3 py-2"
+                value={editProduct.pricePerKg} onChange={(e) => setEditProduct({ ...editProduct, pricePerKg: Number(e.target.value) })} />
+              <input type="number" placeholder="Quantidade no Estoque" className="border rounded px-3 py-2"
+                value={editProduct.stock} onChange={(e) => setEditProduct({ ...editProduct, stock: Number(e.target.value) })} />
+            </div>
+          )}
+
+          <div className="flex justify-end space-x-3 mt-4">
+            <button
+              onClick={() => setEditProduct(null)}
+              className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">Cancelar</button>
+            <button
+              onClick={handleUpdateProduct}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Salvar</button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ALERT DIALOG */}
+      <AlertDialog open={deleteProductId !== null} onOpenChange={(open) => !open && setDeleteProductId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Produto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Essa ação não pode ser desfeita. O produto será removido permanentemente do sistema.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteProductId(null)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteProduct}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 }
