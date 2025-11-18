@@ -130,174 +130,6 @@ export default function ComprasPage() {
     return purchaseItems.reduce((sum, item) => sum + item.subtotal, 0);
   };
 
-  // --- NOVA FUNÇÃO imprimirCupom usando window.print() em nova janela ---
-  async function imprimirCupom(dados: CupomData) {
-    // monta HTML do cupom otimizado para 80mm
-    const cupomHTML = `
-    <html>
-      <head>
-        <meta charset="utf-8" />
-        <title>Cupom - ${dados.ferroVelho}</title>
-        <style>
-          /* Página e dimensões para bobina 80mm */
-          @page {
-            size: 80mm auto;
-            margin: 0;
-          }
-
-          html, body {
-            margin: 0;
-            padding: 0;
-          }
-
-          body {
-            width: 80mm;
-            margin: 0;
-            padding: 6px 8px;
-            font-family: "Courier New", monospace;
-            font-size: 12px;
-            color: #000;
-          }
-
-          .titulo {
-            text-align: center;
-            font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 6px;
-          }
-
-          .subtitulo {
-            text-align: center;
-            font-size: 11px;
-            margin-bottom: 6px;
-          }
-
-          .linha {
-            border-top: 1px dashed #000;
-            margin: 6px 0;
-          }
-
-          .item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 4px;
-            word-break: break-word;
-          }
-
-          .item-left {
-            max-width: 58mm;
-          }
-
-          .totais {
-            display: flex;
-            justify-content: space-between;
-            font-weight: bold;
-            margin-top: 8px;
-          }
-
-          .small {
-            font-size: 11px;
-          }
-
-          .center {
-            text-align: center;
-          }
-
-          /* Remove elementos indesejáveis quando imprimir via browser */
-          @media print {
-            .no-print { display: none !important; }
-          }
-        </style>
-      </head>
-
-      <body>
-        <div class="titulo">${dados.ferroVelho}</div>
-
-        <div class="subtitulo small">
-          Data: ${dados.dataCompra} <br/>
-          Fornecedor: ${dados.fornecedor.nome}
-        </div>
-
-        <div class="linha"></div>
-
-        <div><strong>Itens</strong></div>
-
-        ${dados.itens
-          .map(
-            (i) => `
-          <div class="item">
-            <div class="item-left">
-              ${i.nome} (${i.quantidade}kg)
-            </div>
-            <div class="item-right">
-              R$ ${i.precoTotal.toFixed(2)}
-            </div>
-          </div>
-        `
-          )
-          .join("")}
-
-        <div class="linha"></div>
-
-        <div class="totais">
-          <div>Total de itens: ${dados.totalItens}</div>
-          <div>R$ ${dados.valorTotal.toFixed(2)}</div>
-        </div>
-
-        <div class="linha"></div>
-
-        <div class="center small" style="margin-top:8px;">
-          Obrigado pela preferência!
-        </div>
-      </body>
-    </html>
-  `;
-
-    // abre nova janela e escreve o HTML
-    const win = window.open("", "_blank", "width=400,height=600");
-
-    if (!win) {
-      alert("Pop-up bloqueado! Permita pop-ups para imprimir.");
-      return;
-    }
-
-    win.document.open();
-    win.document.write(cupomHTML);
-    win.document.close();
-
-    // aguarda carregar e dispara impressão
-    // adiciona timeout curto caso onload não seja confiável
-    const tryPrint = () => {
-      try {
-        win.focus();
-        win.print();
-        // fecha a janela 1s depois para garantir que a impressão foi iniciada
-        setTimeout(() => {
-          try {
-            win.close();
-          } catch (e) {
-            /* ignore */
-          }
-        }, 1000);
-      } catch (err) {
-        console.error("Erro ao imprimir cupom:", err);
-        alert("Erro ao imprimir cupom: " + (err as any).toString());
-      }
-    };
-
-    // se evento onload estiver disponível, usa; senão, tenta após 500ms
-    if (win.document.readyState === "complete") {
-      tryPrint();
-    } else {
-      win.onload = tryPrint;
-      // fallback
-      setTimeout(() => {
-        if (!win.closed) tryPrint();
-      }, 700);
-    }
-  }
-  // --- FIM imprimirCupom ---
-
   const finalizePurchase = async () => {
     if (purchaseItems.length === 0) {
       alert("Adicione itens à compra!");
@@ -315,81 +147,181 @@ export default function ComprasPage() {
       return;
     }
 
-    // 1. Mapear purchaseItems para o formato de ItemCompraData, buscando o ID
-    const itensCompraData = purchaseItems.map((item) => {
-      const productFound = products.find((p) => p.name === item.productName);
+    // --- Cálculos corretos ---
+    const totalPeso = purchaseItems.reduce((sum, i) => sum + i.weight, 0);
+    const totalValor = purchaseItems.reduce((sum, i) => sum + i.subtotal, 0);
 
-      if (!productFound) {
-        throw new Error(
-          `Produto "${item.productName}" não encontrado para mapeamento de ID.`
-        );
-      }
-
-      return {
-        produtoId: productFound.id, // ESSENCIAL: ID do produto
-        peso: item.weight,
-        precoKg: item.pricePerKg,
-        subtotal: item.subtotal,
-      };
-    });
-
-    // 2. Calcular Totais
-    const totalPeso = itensCompraData.reduce((sum, i) => sum + i.peso, 0);
-    const totalValor = itensCompraData.reduce((sum, i) => sum + i.subtotal, 0);
-
-    // 3. Montar o Payload COMPLETO, incluindo 'itens'
-    const payload = {
-      fornecedorId: fornecedor.id,
-      totalItens: itensCompraData.length,
-      pesoTotal: totalPeso,
-      valorTotal: totalValor,
-      dataCompra: new Date(),
-      // NOVO: Adicione o array de itens mapeados
-      itens: itensCompraData,
-    };
-
-    console.log("Payload da compra:", payload);
+    // --- DADOS MOCKADOS PARA TESTE ---
+    const mockPedidoId = 8092; // ID do pedido falso
+    // ----------------------------------
 
     try {
-      const res = await fetch("/api/compras", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      // --- Preparar dados para impressão (com mock) ---
+      const printPayload: CupomData = {
+        ferroVelho: "Oswaldo Reciclagens",
+        dataCompra: new Date().toLocaleString("pt-BR"),
+        totalItens: purchaseItems.length,
+        valorTotal: totalValor,
+        fornecedor: {
+          nome: fornecedor.name,
+          telefone: fornecedor.telefone,
+        },
+        itens: purchaseItems.map((i) => ({
+          nome: i.productName,
+          quantidade: i.weight,
+          precoUnitario: i.pricePerKg,
+          precoTotal: i.subtotal,
+        })),
+      };
+
+      // --- Início da Geração de Texto Puro ---
+
+      // --- Definição das Colunas (em caracteres) ---
+      const COL_DESC = 18; // Descrição
+      const COL_VLR = 8;   // Vlr/KG
+      const COL_KG = 8;    // KG
+      const COL_VAL = 8;   // Valor
+      // Largura total em caracteres
+      const TOTAL_WIDTH = COL_DESC + COL_VLR + COL_KG + COL_VAL; // 42
+
+      // --- Funções Auxiliares de Padding ---
+      const padRight = (str: string, len: number) =>
+        (String(str) + " ".repeat(len)).substring(0, len);
+        
+      const padLeft = (str: string, len: number) =>
+        (" ".repeat(len) + String(str)).slice(-len);
+
+      const center = (str: string) => {
+        const padding = Math.floor((TOTAL_WIDTH - str.length) / 2);
+        return padLeft(str, str.length + padding).padEnd(TOTAL_WIDTH);
+      }
+
+      // --- Montagem do Cupom (Linha por Linha) ---
+      let cupomTexto = "";
+      // const linha = "-".repeat(TOTAL_WIDTH) + "\n";
+      const linhaTracejada = "- ".repeat(TOTAL_WIDTH / 2).trim() + "\n";
+
+      // Cabeçalho com bordas
+      cupomTexto += center("OR OSVALDO RECICLAGENS") + "\n";
+      cupomTexto += "\n";
+      cupomTexto += "\n";
+      cupomTexto += center("Rua Tenente Joao Abano N 106") + "\n";
+      cupomTexto += center("Aerolandia - Fortaleza") + "\n";
+      cupomTexto += center("CEP: 60850710 / Fone: 85991566566") + "\n";
+      cupomTexto += "\n";
+      cupomTexto += linhaTracejada;
+      cupomTexto += center("DEUS lhe guarde e proteja") + "\n";
+      cupomTexto += center("Jesus e o caminho, a verdade e a vida!") + "\n";
+      cupomTexto += linhaTracejada;
+
+      // Informações do pedido
+      cupomTexto += padRight(`Pedido: ${mockPedidoId}`, TOTAL_WIDTH) + "\n";
+      cupomTexto += padRight(`Usuario: ${printPayload.fornecedor.nome}`, TOTAL_WIDTH) + "\n";
+      cupomTexto += padRight(`${printPayload.dataCompra}`, TOTAL_WIDTH) + "\n";
+      cupomTexto += "\n";
+      cupomTexto += linhaTracejada;
+
+      // Cabeçalho da Tabela
+      const header =
+        padRight("Descrição", COL_DESC) +
+        padLeft("Vlr. KG", COL_VLR) +
+        padLeft("KG", COL_KG) +
+        padLeft("Valor", COL_VAL);
+      cupomTexto += header + "\n";
+
+      // Itens (LOOP)
+      printPayload.itens.forEach((i) => {
+        const nome = padRight(i.nome.substring(0, COL_DESC), COL_DESC); 
+        const vlr = padLeft(i.precoUnitario.toFixed(2), COL_VLR);
+        const kg = padLeft(i.quantidade.toFixed(3), COL_KG);
+        const val = padLeft(i.precoTotal.toFixed(2), COL_VAL);
+        cupomTexto += `${nome}${vlr}${kg}${val}` + "\n";
       });
 
-      const result = await res.json();
+      cupomTexto += "\n";
+      cupomTexto += linhaTracejada;
 
-      if (res.ok) {
-        const printPayload: CupomData = {
-          ferroVelho: "Oswaldo Reciclagens",
-          dataCompra: new Date().toLocaleString("pt-BR"),
-          totalItens: purchaseItems.length,
-          valorTotal: totalValor,
-          fornecedor: {
-            nome: fornecedor.name,
-            telefone: fornecedor.telefone,
-          },
-          itens: purchaseItems.map((i) => ({
-            nome: i.productName,
-            quantidade: i.weight,
-            precoUnitario: i.pricePerKg,
-            precoTotal: i.subtotal,
-          })),
-        };
+      // Totais
+      const totalPesoStr = `Total Peso Kg: ${totalPeso.toFixed(3)}`;
+      cupomTexto += padLeft(totalPesoStr, TOTAL_WIDTH) + "\n";
+      cupomTexto += "\n";
 
-        // chama a função de impressão (abre a caixa de diálogo do navegador)
-        await fetch("/api/imprimir", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(printPayload),
-        });
-      } else {
-        console.error("Erro ao salvar compra:", result);
-        alert("Erro ao salvar: " + (result?.error || "Erro desconhecido"));
+      const totalValorStr = `Total R$ ${printPayload.valorTotal.toFixed(2)}`;
+      cupomTexto += padLeft(totalValorStr, TOTAL_WIDTH) + "\n";
+
+      const dinheiroStr = `Dinheiro R$ ${printPayload.valorTotal.toFixed(2)}`;
+      cupomTexto += padLeft(dinheiroStr, TOTAL_WIDTH) + "\n";
+      cupomTexto += "\n";
+
+      cupomTexto += linhaTracejada;
+      cupomTexto += center("PRSystem Solutions") + "\n";
+      cupomTexto += center("Precisando de solucoes em tecnologia?") + "\n";
+      cupomTexto += center("Entre em contato conosco!") + "\n";
+      cupomTexto += center("(85) 984141305 - @prsystemsolution") + "\n";
+      cupomTexto += "\n";
+      cupomTexto += center(new Date().toLocaleString("pt-BR")) + "\n";
+      cupomTexto += "\n";
+      cupomTexto += "\n\n\n";
+      cupomTexto += "\n"
+      cupomTexto += "\n"
+      cupomTexto += "\n"
+      cupomTexto += "\n"
+      cupomTexto += "\n";    // Linha em branco
+      cupomTexto += ".\n";   // Avança 1
+      cupomTexto += ".\n";   // Avança 2
+      cupomTexto += ".\n";   // Avança 3
+      cupomTexto += ".\n";   // Avança 4
+      cupomTexto += ".\n";   // Avança 5
+      cupomTexto += ".\n";   // Avança 6
+      cupomTexto += ".\n";   // Avança 7
+
+
+      // --- Fim da Geração de Texto Puro ---
+
+      const cupomHTML = `
+<html>
+  <head>
+    <title>Cupom - ${printPayload.ferroVelho}</title>
+    <style>
+      @page { size: 80mm auto; margin: 0; }
+      body {
+        font-family: 'Courier New', monospace;
+        font-size: 10px;
+        width: 80mm;
+        margin: 0;
+        padding: 5px;
+        color: #000;
+        box-sizing: border-box; 
       }
+      pre {
+        font-family: 'Courier New', monospace;
+        font-size: 10px;
+        margin: 0;
+        padding: 0;
+        white-space: pre; 
+        word-wrap: normal;
+        padding-bottom: 100px;
+      }
+    </style>
+  </head>
+  <body>
+    <pre>${cupomTexto}</pre>
+  </body>
+</html>
+`;
+
+      const win = window.open("", "_blank", "width=400,height=600");
+      if (!win) return alert("Pop-up bloqueado! Permita pop-ups para imprimir.");
+
+      win.document.open();
+      win.document.write(cupomHTML);
+      win.document.close();
+      win.focus();
+      win.print();
+      win.close();
     } catch (err) {
-      console.error("Erro ao salvar compra:", err);
-      alert("Erro ao salvar a compra.");
+      console.error("Erro ao imprimir (mock):", err);
+      alert("Erro ao imprimir a compra.");
     }
   };
 
