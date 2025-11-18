@@ -67,7 +67,7 @@ export default function ComprasPage() {
         ]);
 
         if (!productsRes.ok || !fornecedoresRes.ok) {
-          console.error("Erro carregando produtos ou fornecedores");
+          console.error("Erro carregando produtos ou fornecedores.");
           return;
         }
 
