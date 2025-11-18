@@ -22,4 +22,13 @@ export const compraRepository = {
         },
       },
     }),
+    countSalesBetweenDates: (startDate: Date, endDate: Date) =>
+    prisma.compra.count({
+      where: {
+        dataCompra: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+    }),
 };

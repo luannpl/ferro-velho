@@ -37,3 +37,9 @@ export type CompraData = {
   dataCompra: Date;
   itens: ItemCompraData[];
 };
+
+export type Dashboard = {
+  totalProducts: number;
+  totalInStock: number;
+  salesToday: number;
+}

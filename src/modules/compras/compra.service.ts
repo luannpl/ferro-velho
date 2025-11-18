@@ -65,4 +65,18 @@ export const compraService = {
       compra: result,
     };
   },
+  getTotalSalesToday: async () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const salesToday = await compraRepository.countSalesBetweenDates(
+      today,
+      tomorrow
+    );
+
+    return salesToday;
+  }
 };

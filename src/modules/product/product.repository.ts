@@ -9,4 +9,13 @@ export const productRepository = {
   update: (id: number, data: Partial<Product>) =>
     prisma.product.update({ where: { id }, data }),
   delete: (id: number) => prisma.product.delete({ where: { id } }),
+  getProductsData: async () => {
+    const totalProducts = await prisma.product.count();
+    const totalInStock = await prisma.product.aggregate({
+      _sum: {
+        stock: true,
+      },
+    });
+    return { totalProducts, totalInStock };
+  }
 };

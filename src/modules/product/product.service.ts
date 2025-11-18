@@ -71,4 +71,13 @@ export const productService = {
       productDestination,
     };
   },
+  getProductsData: async () => {
+    const {totalProducts, totalInStock} = await productRepository.getProductsData();
+    return {
+      totalProducts,
+      totalInStock: totalInStock._sum.stock || 0,
+    };
+  }
+  
+
 };
