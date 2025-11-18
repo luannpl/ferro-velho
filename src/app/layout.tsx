@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Ferro Velho",
+  title: "Osvaldo Reciclagens",
   description: "Sistema de Gestão para Ferro Velho",
 };
 

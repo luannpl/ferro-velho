@@ -11,8 +11,9 @@ import {
   CircleArrowLeft,
   Menu,
   RefreshCcw,
+  LogOut,
 } from "lucide-react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, redirect } from "next/navigation";
 import Link from "next/link";
 
 // Definição do item do menu
@@ -56,9 +57,9 @@ const Sidebar = ({
       } bg-gray-900 text-white transition-all duration-300 overflow-hidden h-screen`}
     >
       <div className="p-4">
-        <h1 className="text-2xl font-bold mb-8">
+        {/* <h1 className="text-2xl font-bold mb-8">
           <Link href="/">Ferro Velho</Link>
-        </h1>
+        </h1> */}
         <nav className="space-y-2">
           {menuItems.map((item) => (
             <button
@@ -72,6 +73,13 @@ const Sidebar = ({
               <span>{item.label}</span>
             </button>
           ))}
+          <button
+            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-red-500 hover:bg-gray-800 transition-colors "
+            onClick={() => redirect("/")}
+          >
+            <LogOut size={20} />
+            <span>Sair</span>
+          </button>
         </nav>
       </div>
     </div>
