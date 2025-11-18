@@ -378,7 +378,11 @@ export default function ComprasPage() {
         };
 
         // chama a função de impressão (abre a caixa de diálogo do navegador)
-        await imprimirCupom(printPayload);
+        await fetch("/api/imprimir", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(printPayload),
+        });
       } else {
         console.error("Erro ao salvar compra:", result);
         alert("Erro ao salvar: " + (result?.error || "Erro desconhecido"));
