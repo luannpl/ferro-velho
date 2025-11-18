@@ -130,47 +130,173 @@ export default function ComprasPage() {
     return purchaseItems.reduce((sum, item) => sum + item.subtotal, 0);
   };
 
+  // --- NOVA FUNÇÃO imprimirCupom usando window.print() em nova janela ---
   async function imprimirCupom(dados: CupomData) {
-    try {
-      // Selecionar a impressora
-      const device = await navigator.usb.requestDevice({
-        filters: [{ vendorId: 0x04b8 }] // Epson
-      });
+    // monta HTML do cupom otimizado para 80mm
+    const cupomHTML = `
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Cupom - ${dados.ferroVelho}</title>
+        <style>
+          /* Página e dimensões para bobina 80mm */
+          @page {
+            size: 80mm auto;
+            margin: 0;
+          }
 
-      await device.open();
-      await device.selectConfiguration(1);
-      await device.claimInterface(0);
+          html, body {
+            margin: 0;
+            padding: 0;
+          }
 
-      // Montar comandos ESC/POS (texto simples)
-      const encoder = new TextEncoder();
+          body {
+            width: 80mm;
+            margin: 0;
+            padding: 6px 8px;
+            font-family: "Courier New", monospace;
+            font-size: 12px;
+            color: #000;
+          }
 
-      const texto = `
-     ${dados.ferroVelho}
-     Compra: ${dados.dataCompra}
-     Fornecedor: ${dados.fornecedor.nome}
+          .titulo {
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 6px;
+          }
 
-     ------------------------------
-     ITEM          KG     TOTAL
-     ------------------------------
-     ${dados.itens
-          .map((i: CupomItem) => `${i.nome}  ${i.quantidade}kg  R$${i.precoTotal}`)
-          .join("\n")}
-     ------------------------------
-     TOTAL PAGO: R$ ${dados.valorTotal}
+          .subtitulo {
+            text-align: center;
+            font-size: 11px;
+            margin-bottom: 6px;
+          }
 
-    `;
+          .linha {
+            border-top: 1px dashed #000;
+            margin: 6px 0;
+          }
 
-      const comando = encoder.encode(texto);
+          .item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            word-break: break-word;
+          }
 
-      // Enviar para a impressora
-      await device.transferOut(1, comando);
+          .item-left {
+            max-width: 58mm;
+          }
 
-      alert("Cupom enviado para impressora!");
-    } catch (err) {
-      console.error(err);
-      alert("Erro ao imprimir: " + err);
+          .totais {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin-top: 8px;
+          }
+
+          .small {
+            font-size: 11px;
+          }
+
+          .center {
+            text-align: center;
+          }
+
+          /* Remove elementos indesejáveis quando imprimir via browser */
+          @media print {
+            .no-print { display: none !important; }
+          }
+        </style>
+      </head>
+
+      <body>
+        <div class="titulo">${dados.ferroVelho}</div>
+
+        <div class="subtitulo small">
+          Data: ${dados.dataCompra} <br/>
+          Fornecedor: ${dados.fornecedor.nome}
+        </div>
+
+        <div class="linha"></div>
+
+        <div><strong>Itens</strong></div>
+
+        ${dados.itens
+          .map(
+            (i) => `
+          <div class="item">
+            <div class="item-left">
+              ${i.nome} (${i.quantidade}kg)
+            </div>
+            <div class="item-right">
+              R$ ${i.precoTotal.toFixed(2)}
+            </div>
+          </div>
+        `
+          )
+          .join("")}
+
+        <div class="linha"></div>
+
+        <div class="totais">
+          <div>Total de itens: ${dados.totalItens}</div>
+          <div>R$ ${dados.valorTotal.toFixed(2)}</div>
+        </div>
+
+        <div class="linha"></div>
+
+        <div class="center small" style="margin-top:8px;">
+          Obrigado pela preferência!
+        </div>
+      </body>
+    </html>
+  `;
+
+    // abre nova janela e escreve o HTML
+    const win = window.open("", "_blank", "width=400,height=600");
+
+    if (!win) {
+      alert("Pop-up bloqueado! Permita pop-ups para imprimir.");
+      return;
+    }
+
+    win.document.open();
+    win.document.write(cupomHTML);
+    win.document.close();
+
+    // aguarda carregar e dispara impressão
+    // adiciona timeout curto caso onload não seja confiável
+    const tryPrint = () => {
+      try {
+        win.focus();
+        win.print();
+        // fecha a janela 1s depois para garantir que a impressão foi iniciada
+        setTimeout(() => {
+          try {
+            win.close();
+          } catch (e) {
+            /* ignore */
+          }
+        }, 1000);
+      } catch (err) {
+        console.error("Erro ao imprimir cupom:", err);
+        alert("Erro ao imprimir cupom: " + (err as any).toString());
+      }
+    };
+
+    // se evento onload estiver disponível, usa; senão, tenta após 500ms
+    if (win.document.readyState === "complete") {
+      tryPrint();
+    } else {
+      win.onload = tryPrint;
+      // fallback
+      setTimeout(() => {
+        if (!win.closed) tryPrint();
+      }, 700);
     }
   }
+  // --- FIM imprimirCupom ---
 
   const finalizePurchase = async () => {
     if (purchaseItems.length === 0) {
@@ -191,9 +317,7 @@ export default function ComprasPage() {
 
     // 1. Mapear purchaseItems para o formato de ItemCompraData, buscando o ID
     const itensCompraData = purchaseItems.map((item) => {
-      const productFound = products.find(
-        (p) => p.name === item.productName
-      );
+      const productFound = products.find((p) => p.name === item.productName);
 
       if (!productFound) {
         throw new Error(
@@ -236,23 +360,24 @@ export default function ComprasPage() {
       const result = await res.json();
 
       if (res.ok) {
-        const printPayload = {
+        const printPayload: CupomData = {
           ferroVelho: "Oswaldo Reciclagens",
           dataCompra: new Date().toLocaleString("pt-BR"),
           totalItens: purchaseItems.length,
           valorTotal: totalValor,
           fornecedor: {
             nome: fornecedor.name,
-            telefone: fornecedor.telefone
+            telefone: fornecedor.telefone,
           },
-          itens: purchaseItems.map(i => ({
+          itens: purchaseItems.map((i) => ({
             nome: i.productName,
             quantidade: i.weight,
             precoUnitario: i.pricePerKg,
-            precoTotal: i.subtotal
-          }))
+            precoTotal: i.subtotal,
+          })),
         };
 
+        // chama a função de impressão (abre a caixa de diálogo do navegador)
         await imprimirCupom(printPayload);
       } else {
         console.error("Erro ao salvar compra:", result);
@@ -443,7 +568,9 @@ export default function ComprasPage() {
               value={selectedSupplier || undefined}
               onChange={(value) => setSelectedSupplier(value)}
               filterOption={(input, option) =>
-                (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                (option?.label ?? "")
+                  .toLowerCase()
+                  .includes(input.toLowerCase())
               }
               options={fornecedores.map((f) => ({
                 value: f.name,
@@ -485,10 +612,11 @@ export default function ComprasPage() {
 
               <button
                 onClick={finalizePurchase}
-                className={`w-full py-3 rounded-lg font-bold ${selectedSupplier
-                  ? "bg-green-600 text-white hover:bg-green-700"
-                  : "bg-gray-300 text-gray-700 cursor-not-allowed"
-                  }`}
+                className={`w-full py-3 rounded-lg font-bold ${
+                  selectedSupplier
+                    ? "bg-green-600 text-white hover:bg-green-700"
+                    : "bg-gray-300 text-gray-700 cursor-not-allowed"
+                }`}
                 disabled={!selectedSupplier}
               >
                 Finalizar Compra
