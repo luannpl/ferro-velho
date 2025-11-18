@@ -38,6 +38,21 @@ export type CompraData = {
   itens: ItemCompraData[];
 };
 
+export interface CompraResponseItem {
+  id: number;
+  fornecedorId: number;
+  dataCompra: string; // vem como string no JSON
+  totalItens: number;
+  pesoTotal: string;  // vem como string no JSON
+  valorTotal: string; // vem como string no JSON
+}
+
+export interface CompraDataResponse {
+  message: string;
+  compra: CompraResponseItem;
+}
+
+
 export type Dashboard = {
   totalProducts: number;
   totalInStock: number;

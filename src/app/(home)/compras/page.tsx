@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Plus, Trash2, Package } from "lucide-react";
 import { Input, Select } from "antd";
 
-import { FornecedorData } from "@/types";
+import { CompraDataResponse, FornecedorData } from "@/types";
 
 interface CupomItem {
   nome: string;
@@ -131,37 +131,89 @@ export default function ComprasPage() {
   };
 
   const finalizePurchase = async () => {
+    // -------------------------------------------------------------------
+    // --- 1. VALIDAÇÕES E ENCONTRAR FORNECEDOR ---
+    // -------------------------------------------------------------------
+    // Alteração: Substituído 'alert()' por 'console.error()' ou implementação de modal UI customizado, conforme as boas práticas do ambiente Canvas.
+    const customAlert = (message: string) => console.error("Aviso:", message);
+
     if (purchaseItems.length === 0) {
-      alert("Adicione itens à compra!");
+      customAlert("Adicione itens à compra!");
       return;
     }
 
     if (!selectedSupplier) {
-      alert("Selecione um fornecedor para a nota antes de finalizar.");
+      customAlert("Selecione um fornecedor para a nota antes de finalizar.");
       return;
     }
 
     const fornecedor = fornecedores.find((f) => f.name === selectedSupplier);
     if (!fornecedor) {
-      alert("Fornecedor selecionado inválido.");
+      customAlert("Fornecedor selecionado inválido.");
       return;
     }
 
-    // --- Cálculos corretos ---
+    const itensCompraData = purchaseItems.map((item) => {
+      const productFound = products.find((p) => p.name === item.productName);
+
+      if (!productFound) {
+        throw new Error(
+          `Produto "${item.productName}" não encontrado para mapeamento de ID.`
+        );
+      }
+
+      return {
+        produtoId: productFound.id, // ESSENCIAL: ID do produto
+        peso: item.weight,
+        precoKg: item.pricePerKg,
+        subtotal: item.subtotal,
+      };
+    });
+
+    // -------------------------------------------------------------------
+    // --- 2. CÁLCULOS E DADOS DE IMPRESSÃO ---
+    // -------------------------------------------------------------------
     const totalPeso = purchaseItems.reduce((sum, i) => sum + i.weight, 0);
     const totalValor = purchaseItems.reduce((sum, i) => sum + i.subtotal, 0);
+    const mockDataCompra = new Date().toLocaleString("pt-BR", {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false // Formato 24h
+    }).replace(',', ''); // Remoção da vírgula para simular o formato da imagem
 
-    // --- DADOS MOCKADOS PARA TESTE ---
-    const mockPedidoId = 8092; // ID do pedido falso
-    // ----------------------------------
+    const payload = {
+      fornecedorId: fornecedor.id,
+      totalItens: itensCompraData.length,
+      pesoTotal: totalPeso,
+      valorTotal: totalValor,
+      dataCompra: new Date(),
+      // NOVO: Adicione o array de itens mapeados
+      itens: itensCompraData,
+    };
 
     try {
-      // --- Preparar dados para impressão (com mock) ---
-      const printPayload: CupomData = {
-        ferroVelho: "Oswaldo Reciclagens",
-        dataCompra: new Date().toLocaleString("pt-BR"),
+      const res = await fetch("/api/compras", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const result: CompraDataResponse = await res.json();
+      if (!res.ok) {
+        throw new Error("Erro ao finalizar compra:");
+      }
+
+      //
+      // Estrutura de dados para o cupom
+      const printPayload = {
+        ferroVelho: "OSVALDO RECICLAGENS", 
+        dataCompra: mockDataCompra,
         totalItens: purchaseItems.length,
         valorTotal: totalValor,
+        pedidoId: result.compra.id,
         fornecedor: {
           nome: fornecedor.name,
           telefone: fornecedor.telefone,
@@ -174,157 +226,274 @@ export default function ComprasPage() {
         })),
       };
 
-      // --- Início da Geração de Texto Puro ---
-
-      // --- Definição das Colunas (em caracteres) ---
-      const COL_DESC = 18; // Descrição
-      const COL_VLR = 8;   // Vlr/KG
-      const COL_KG = 8;    // KG
-      const COL_VAL = 8;   // Valor
-      // Largura total em caracteres
-      const TOTAL_WIDTH = COL_DESC + COL_VLR + COL_KG + COL_VAL; // 42
-
-      // --- Funções Auxiliares de Padding ---
-      const padRight = (str: string, len: number) =>
-        (String(str) + " ".repeat(len)).substring(0, len);
-        
-      const padLeft = (str: string, len: number) =>
-        (" ".repeat(len) + String(str)).slice(-len);
-
-      const center = (str: string) => {
-        const padding = Math.floor((TOTAL_WIDTH - str.length) / 2);
-        return padLeft(str, str.length + padding).padEnd(TOTAL_WIDTH);
-      }
-
-      // --- Montagem do Cupom (Linha por Linha) ---
-      let cupomTexto = "";
-      // const linha = "-".repeat(TOTAL_WIDTH) + "\n";
-      const linhaTracejada = "- ".repeat(TOTAL_WIDTH / 2).trim() + "\n";
-
-      // Cabeçalho com bordas
-      cupomTexto += center("OR OSVALDO RECICLAGENS") + "\n";
-      cupomTexto += "\n";
-      cupomTexto += "\n";
-      cupomTexto += center("Rua Tenente Joao Abano N 106") + "\n";
-      cupomTexto += center("Aerolandia - Fortaleza") + "\n";
-      cupomTexto += center("CEP: 60850710 / Fone: 85991566566") + "\n";
-      cupomTexto += "\n";
-      cupomTexto += linhaTracejada;
-      cupomTexto += center("DEUS lhe guarde e proteja") + "\n";
-      cupomTexto += center("Jesus e o caminho, a verdade e a vida!") + "\n";
-      cupomTexto += linhaTracejada;
-
-      // Informações do pedido
-      cupomTexto += padRight(`Pedido: ${mockPedidoId}`, TOTAL_WIDTH) + "\n";
-      cupomTexto += padRight(`Usuario: ${printPayload.fornecedor.nome}`, TOTAL_WIDTH) + "\n";
-      cupomTexto += padRight(`${printPayload.dataCompra}`, TOTAL_WIDTH) + "\n";
-      cupomTexto += "\n";
-      cupomTexto += linhaTracejada;
-
-      // Cabeçalho da Tabela
-      const header =
-        padRight("Descrição", COL_DESC) +
-        padLeft("Vlr. KG", COL_VLR) +
-        padLeft("KG", COL_KG) +
-        padLeft("Valor", COL_VAL);
-      cupomTexto += header + "\n";
-
-      // Itens (LOOP)
-      printPayload.itens.forEach((i) => {
-        const nome = padRight(i.nome.substring(0, COL_DESC), COL_DESC); 
-        const vlr = padLeft(i.precoUnitario.toFixed(2), COL_VLR);
-        const kg = padLeft(i.quantidade.toFixed(3), COL_KG);
-        const val = padLeft(i.precoTotal.toFixed(2), COL_VAL);
-        cupomTexto += `${nome}${vlr}${kg}${val}` + "\n";
-      });
-
-      cupomTexto += "\n";
-      cupomTexto += linhaTracejada;
-
-      // Totais
-      const totalPesoStr = `Total Peso Kg: ${totalPeso.toFixed(3)}`;
-      cupomTexto += padLeft(totalPesoStr, TOTAL_WIDTH) + "\n";
-      cupomTexto += "\n";
-
-      const totalValorStr = `Total R$ ${printPayload.valorTotal.toFixed(2)}`;
-      cupomTexto += padLeft(totalValorStr, TOTAL_WIDTH) + "\n";
-
-      const dinheiroStr = `Dinheiro R$ ${printPayload.valorTotal.toFixed(2)}`;
-      cupomTexto += padLeft(dinheiroStr, TOTAL_WIDTH) + "\n";
-      cupomTexto += "\n";
-
-      cupomTexto += linhaTracejada;
-      cupomTexto += center("PRSystem Solutions") + "\n";
-      cupomTexto += center("Precisando de solucoes em tecnologia?") + "\n";
-      cupomTexto += center("Entre em contato conosco!") + "\n";
-      cupomTexto += center("(85) 984141305 - @prsystemsolution") + "\n";
-      cupomTexto += "\n";
-      cupomTexto += center(new Date().toLocaleString("pt-BR")) + "\n";
-      cupomTexto += "\n";
-      cupomTexto += "\n\n\n";
-      cupomTexto += "\n"
-      cupomTexto += "\n"
-      cupomTexto += "\n"
-      cupomTexto += "\n"
-      cupomTexto += "\n";    // Linha em branco
-      cupomTexto += ".\n";   // Avança 1
-      cupomTexto += ".\n";   // Avança 2
-      cupomTexto += ".\n";   // Avança 3
-      cupomTexto += ".\n";   // Avança 4
-      cupomTexto += ".\n";   // Avança 5
-      cupomTexto += ".\n";   // Avança 6
-      cupomTexto += ".\n";   // Avança 7
-
-
-      // --- Fim da Geração de Texto Puro ---
-
+      // -------------------------------------------------------------------
+      // --- 3. GERAÇÃO DO HTML COM CSS (REQUER DRIVER EPSON OFICIAL) ---
+      // -------------------------------------------------------------------
+      
       const cupomHTML = `
 <html>
   <head>
-    <title>Cupom - ${printPayload.ferroVelho}</title>
+    <meta charset="utf-8"> 
+    <title>Cupom</title>
+
     <style>
-      @page { size: 80mm auto; margin: 0; }
+      @page { 
+        size: 80mm auto; 
+        margin: 0; 
+      }
+
       body {
         font-family: 'Courier New', monospace;
-        font-size: 10px;
-        width: 80mm;
+        width: 80mm; 
         margin: 0;
-        padding: 5px;
+        padding: 12px 10px;
         color: #000;
-        box-sizing: border-box; 
+        font-size: 12px;
+        line-height: 1.4;
+        font-weight: bold;
       }
-      pre {
-        font-family: 'Courier New', monospace;
-        font-size: 10px;
+
+      .center { text-align: center; }
+      .bold { font-weight: bold; }
+
+      /* Logo e cabeçalho */
+      .logo-box {
+        border: 2px solid #000;
+        padding: 6px 10px;
+        margin: 0 auto 12px auto;
+        width: fit-content;
+        display: inline-block;
+        border-radius: 4px;
+      }
+
+      .recycle-icon {
+        font-size: 28px;
+        display: block;
+        margin-bottom: 3px;
+        font-weight: bold;
+      }
+
+      .titulo-loja { 
+        font-size: 14px; 
+        font-weight: bold;
         margin: 0;
-        padding: 0;
-        white-space: pre; 
-        word-wrap: normal;
-        padding-bottom: 100px;
+      }
+
+      .endereco { 
+        font-size: 11px; 
+        line-height: 1.3;
+        margin: 3px 0;
+        font-weight: bold;
+      }
+
+      /* Box mensagem */
+      .box-mensagem {
+        border: 1px solid #000;
+        background: #f3f3f3;
+        padding: 10px 6px;
+        margin: 12px 0;
+        font-size: 12px;
+        line-height: 1.4;
+        font-weight: bold;
+        border-radius: 4px;
+      }
+
+      /* Informações */
+      .info-pedido {
+        font-size: 12px;
+        margin: 12px 0;
+        font-weight: bold;
+        padding-left: 6px;
+      }
+
+      .info-linha {
+        display: flex;
+        justify-content: space-between;
+        margin: 4px 0;
+      }
+
+      /* Tabela */
+      table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        font-size: 11px;
+        margin: 12px 0;
+        font-weight: bold;
+        table-layout: fixed; /* Essencial para o ellipsis funcionar */
+      }
+
+      th { 
+        text-align: center;
+        border-bottom: 2px solid #000;
+        border-top: 2px solid #000;
+        padding: 5px 2px;
+        font-weight: bold;
+        font-size: 12px;
+      }
+
+      td { 
+        text-align: center;
+        padding: 5px 2px;
+        font-size: 12px;
+      }
+      
+      /* NOVO: Estilo para cortar e adicionar "..." */
+      .ellipsis-cell {
+        text-align: left; /* Alinha o texto do produto à esquerda */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding-left: 5px;
+      }
+      /* FIM NOVO */
+
+      /* Linha separadora */
+      .linha-separadora {
+        border-top: 2px solid #000;
+        margin: 12px 0;
+      }
+
+      .valores {
+        padding-left: 5px;
+      }
+
+      .total-linha {
+        display: flex;
+        margin: 5px 0;
+        font-size: 12px;
+        font-weight: bold;
+      }
+
+      .total-principal {
+        font-size: 18px;
+        font-weight: bold;
+        margin: 10px 0;
+      }
+
+      /* Rodapé */
+      .footer { 
+        margin-top: 18px; 
+        font-size: 11px;
+        line-height: 1.4;
+        font-weight: bold;
       }
     </style>
   </head>
+
   <body>
-    <pre>${cupomTexto}</pre>
+    <!-- Cabeçalho com Logo -->
+    <div class="center">
+      <div class="logo-box">
+        <span class="recycle-icon">♻</span>
+        <div class="titulo-loja">OR OSVALDO RECICLAGENS LTDA</div>
+      </div>
+      <div class="endereco">Rua Tenente João Albano N° 106</div>
+      <div class="endereco">Aerolândia - Fortaleza</div>
+      <div class="endereco">CEP: 60850-710 / Fone: (85)99156-6566</div>
+    </div>
+
+    <!-- Box Mensagem -->
+    <div class="box-mensagem center">
+      <div class="bold">DEUS é bom o tempo todo, todo o</div>
+      <div class="bold">tempo DEUS é bom!</div>
+    </div>
+
+    <!-- Info Pedido -->
+    <div class="info-pedido">
+      <div class="info-linha">
+        <span class="bold">Pedido: ${printPayload.pedidoId}</span>
+      </div>
+
+      <div class="info-linha">
+        <span>Usuário: ${printPayload.fornecedor.nome}</span>
+      </div>
+      <div class="info-linha">
+        <span>${printPayload.dataCompra}</span>
+      </div>
+    </div>
+
+    <!-- Tabela -->
+    <table>
+      <thead>
+        <tr>
+          <th width="35%">Descrição</th>
+          <th width="20%">Vlr.KG</th>
+          <th width="20%">KG</th>
+          <th width="25%">Valor</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        ${printPayload.itens.map(i => `
+          <tr>
+            <td class="ellipsis-cell">${i.nome}</td> <!-- AQUI: Nova classe aplicada -->
+            <td>${i.precoUnitario.toFixed(2)}</td>
+            <td>${i.quantidade.toFixed(3)}</td>
+            <td>${i.precoTotal.toFixed(2)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <div class="linha-separadora"></div>
+
+    <!-- Totais -->
+    <div class="valores">
+      <div class="total-linha">
+        <span>Total Peso Kg:</span>
+        <span>${totalPeso.toFixed(3)}</span>
+      </div>
+
+      <div class="total-linha total-principal">
+        <span>TOTAL R$</span>
+        <span>${printPayload.valorTotal.toFixed(2)}</span>
+      </div>
+
+      <div class="total-linha">
+        <span>Dinheiro R$</span>
+        <span>${printPayload.valorTotal.toFixed(2)}</span>
+      </div>
+    </div>
+
+    <div class="linha-separadora"></div>
+
+    <!-- Rodapé -->
+    <div class="footer center">
+      <div class="bold">Ⓒ PRSystem Solutions</div>
+      <div>Precisa de um sistema? Entre em contato:</div>
+      <div>(85)92164-4075 | @prsystemsolution</div>
+    </div>
+
   </body>
 </html>
 `;
 
+      // -------------------------------------------------------------------
+      // --- 4. EXIBIÇÃO E IMPRESSÃO ---
+      // -------------------------------------------------------------------
+
       const win = window.open("", "_blank", "width=400,height=600");
-      if (!win) return alert("Pop-up bloqueado! Permita pop-ups para imprimir.");
+      if (!win) {
+        console.error("Pop-up bloqueado! Permita pop-ups para imprimir.");
+        return; 
+      }
 
       win.document.open();
       win.document.write(cupomHTML);
       win.document.close();
-      win.focus();
-      win.print();
-      win.close();
+      
+      // Um pequeno atraso para garantir que o navegador renderizou todos os estilos antes de imprimir
+      setTimeout(() => {
+        win.focus();
+        win.print();
+        // win.close(); // Comentado para permitir que você ajuste as configurações no diálogo de impressão
+      }, 300);
+
     } catch (err) {
-      console.error("Erro ao imprimir (mock):", err);
-      alert("Erro ao imprimir a compra.");
+      console.error("Erro ao imprimir:", err);
+      console.error("Erro ao imprimir a compra.");
     }
   };
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2">
