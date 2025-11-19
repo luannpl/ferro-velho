@@ -53,6 +53,22 @@ export interface CompraDataResponse {
 }
 
 
+export type VendaData = {
+  clientId: number;
+  dataVenda: Date;
+  totalItens: number;
+  pesoTotal: number;
+  valorTotal: number;
+  itens: ItemVendaData[];
+}
+
+export type ItemVendaData = {
+  produtoId: number;
+  peso: number;
+  precoKg: number;
+  subtotal: number;
+}
+
 export type Dashboard = {
   totalProducts: number;
   totalInStock: number;
