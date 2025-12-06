@@ -5,22 +5,6 @@ import { Input, Select } from "antd";
 
 import { CompraDataResponse, FornecedorData } from "@/types";
 
-interface CupomItem {
-  nome: string;
-  quantidade: number;
-  precoUnitario: number;
-  precoTotal: number;
-}
-
-interface CupomData {
-  ferroVelho: string;
-  dataCompra: string;
-  totalItens: number;
-  valorTotal: number;
-  fornecedor: { nome: string; telefone?: string };
-  itens: CupomItem[];
-}
-
 interface PurchaseItem {
   productName: string;
   category: string;

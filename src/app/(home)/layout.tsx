@@ -14,7 +14,6 @@ import {
   LogOut,
 } from "lucide-react";
 import { useRouter, usePathname, redirect } from "next/navigation";
-import Link from "next/link";
 
 // Definição do item do menu
 interface MenuItem {
