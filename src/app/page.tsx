@@ -3,6 +3,7 @@
 import { Mail, Lock, LogIn } from "lucide-react";
 import { redirect } from "next/navigation";
 import { FormEvent } from "react";
+import Image from "next/image";
 
 export default function Login() {
   const handleLogin = (e: FormEvent<HTMLFormElement>) => {
@@ -18,7 +19,7 @@ export default function Login() {
         {/* Lado Esquerdo: Imagem/Conteúdo Temático */}
         <div className="hidden sm:flex sm:w-1/2 bg-gray-700 items-center justify-center p-0 relative">
           <div>
-            <img src="./logo.png" alt="" className="w-full h-full" />
+            <Image src="./logo.png" alt="" className="w-full h-full" />
           </div>
         </div>
 
