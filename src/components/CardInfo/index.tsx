@@ -1,4 +1,12 @@
-export default function CardInfo({ title, valor, icon, bgColor }: { title: string; valor: number; icon: any; bgColor?: string }) {
+import React from 'react';
+
+interface CardInfoProps {
+    title: string;
+    valor: number;
+    icon: React.ReactNode; 
+    bgColor?: string;
+}
+export default function CardInfo({ title, valor, icon, bgColor }: CardInfoProps) {
     return (
         <div className={`flex items-center justify-between p-4 rounded-lg shadow ${bgColor ?? ''}`}>
             <div className="flex flex-col gap-2">
