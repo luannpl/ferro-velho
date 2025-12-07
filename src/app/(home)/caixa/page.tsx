@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import CardInfo from "@/components/CardInfo";
-import { Archive, History, TrendingDown, TrendingUp, Wallet } from "lucide-react";
+import { Archive, ArrowUpRight, History, TrendingDown, TrendingUp, Wallet } from "lucide-react";
 import InfoTransacao from "@/components/InfoTransacao";
 import InfoHistory from "@/components/InfoHistory";
 
@@ -61,7 +61,7 @@ export default function Caixa() {
                         </div>
                     </div>
                     <div className="mt-4">
-                        <InfoTransacao />
+                        <InfoTransacao title="Venda de produto eletrônico" valor={1250} tipo="Venda" data="07 dez, 17:42" icon={<ArrowUpRight />} bgColorIcon="bg-green-100" textColorIcon="text-green-600" textColorValue="text-green-600"/>
                     </div>
                 </div>
             </section>

@@ -285,12 +285,19 @@ export default function ProdutosPage() {
 
           {editProduct && (
             <div className='grid grid-cols-2 gap-4'>
+              <div>Nome: </div>
               <input type="text" placeholder="Nome" className="border rounded px-3 py-2"
                 value={editProduct.name} onChange={(e) => setEditProduct({ ...editProduct, name: e.target.value })} />
+              
+              <div>Categoria: </div>
               <input type="text" placeholder="Categoria" className="border rounded px-3 py-2"
                 value={editProduct.category} onChange={(e) => setEditProduct({ ...editProduct, category: e.target.value })} />
+              
+              <div>Preço por kg: </div>
               <input type="number" placeholder="Preço por kg" className="border rounded px-3 py-2"
                 value={editProduct.pricePerKg} onChange={(e) => setEditProduct({ ...editProduct, pricePerKg: Number(e.target.value) })} />
+              
+              <div>Quantidade no Estoque: </div>
               <input type="number" placeholder="Quantidade no Estoque" className="border rounded px-3 py-2"
                 value={editProduct.stock} onChange={(e) => setEditProduct({ ...editProduct, stock: Number(e.target.value) })} />
             </div>
