@@ -14,7 +14,6 @@ import {
   LogOut,
 } from "lucide-react";
 import { useRouter, usePathname, redirect } from "next/navigation";
-import Link from "next/link";
 
 // Definição do item do menu
 interface MenuItem {
@@ -27,6 +26,7 @@ interface MenuItem {
 // Array com os itens do menu
 const menuItems: MenuItem[] = [
   { id: "dashboard", icon: TrendingUp, label: "Dashboard", path: "/dashboard" },
+  { id: "caixa", icon: ShoppingCart, label: "Caixa", path: "/caixa" },
   { id: "produtos", icon: Package, label: "Produtos", path: "/produtos" },
   { id: "compras", icon: DollarSign, label: "Compras", path: "/compras" },
   { id: "vendas", icon: ShoppingCart, label: "Vendas", path: "/vendas" },
