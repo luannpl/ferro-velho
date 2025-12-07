@@ -1,6 +1,9 @@
 'use client'
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import CardInfo from "@/components/CardInfo";
+import { TrendingUp } from "lucide-react";
+
 export default function Caixa() {
     const [open, setOpen] = useState(false);
     return (
@@ -21,12 +24,18 @@ export default function Caixa() {
                         <p className="text-muted-foreground text-sm">Gerencie suas transações e acompanhe o fluxo de caixa</p>
                     </div>
                     <div>
-                        <Button className={`${open ? "bg-red-600 hover:bg-red-600" : "bg-green-500 hover:bg-green-500"}`} onClick={() => setOpen(!open)}>{open ? "Fechar Caixa" : "Abrir Caixa"}</Button>                    
+                        <Button className={`${open ? "bg-red-600 hover:bg-red-600" : "bg-green-500 hover:bg-green-500"}`} onClick={() => setOpen(!open)}>{open ? "Fechar Caixa" : "Abrir Caixa"}</Button>
                     </div>
                 </div>
                 <div className="p-2">
                     <p className={`text-xs ${open ? "text-green-500" : "text-muted-foreground"}`}><span className={`w-2 h-2 rounded-full mr-1 inline-block ${open ? "bg-green-500" : "bg-gray-500"}`}></span>{open ? "Caixa Aberto" : "Caixa Fechado"}</p>
                 </div>
+                <div className="justify-between">
+                    <CardInfo title="Receita Total" valor={1000} icon={<TrendingUp />} bgColor="bg-green-500/30" />
+                    <CardInfo title="Receita Total" valor={1000} icon={<TrendingUp />} bgColor="bg-green-500/30" />
+                    <CardInfo title="Receita Total" valor={1000} icon={<TrendingUp />} bgColor="bg-green-500/30" />
+                </div>
+                
             </section>
         </main>
     )
