@@ -5,6 +5,7 @@ import CardInfo from "@/components/CardInfo";
 import { Archive, ArrowUpRight, History, TrendingDown, TrendingUp, Wallet } from "lucide-react";
 import InfoTransacao from "@/components/InfoTransacao";
 import InfoHistory from "@/components/InfoHistory";
+import CardInfoPeso from "@/components/CardInfoPeso";
 
 export default function Caixa() {
     const [open, setOpen] = useState(false);
@@ -47,6 +48,14 @@ export default function Caixa() {
                     </div>
                     <div className="flex-1">
                         <CardInfo title="Lucro" valor={1000} icon={<Wallet />} bgColor="bg-green-300/30" borderColor="border-green-300" textColor="text-green-600" />
+                    </div>
+                </div>
+                <div className="flex gap-4 mt-2">
+                    <div className="flex-1">
+                        <CardInfoPeso title="Peso Total Comprado" valor={1000} bgColor="bg-green-300/30" borderColor="border-green-300" textColor="text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                        <CardInfoPeso title="Peso Total Vendido" valor={1000} bgColor="bg-blue-300/30" borderColor="border-blue-300" textColor="text-blue-600" />
                     </div>
                 </div>
             </section>
