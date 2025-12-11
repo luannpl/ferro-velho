@@ -25,7 +25,8 @@ interface Product {
   name: string;
   category: string;
   weight: number;
-  pricePerKg: number;
+  pricePerKgCompra: number;
+  pricePerKgVenda: number;
   stock: number;
 }
 
@@ -38,8 +39,9 @@ export default function ProdutosPage() {
   const [newProduct, setNewProduct] = useState({
     name: "",
     category: "",
-    pricePerKg: "" as string | number, // Mudar para string inicialmente
-    stock: "" as string | number, // Mudar para string inicialmente
+    pricePerKgCompra: "" as string | number, 
+    pricePerKgVenda: "" as string | number, 
+    stock: "" as string | number, 
   });
 
   const fetchProducts = async () => {
@@ -56,7 +58,8 @@ export default function ProdutosPage() {
     // Converter para número antes de enviar
     const productToSend = {
       ...newProduct,
-      pricePerKg: Number(newProduct.pricePerKg) || 0,
+      pricePerKgCompra: Number(newProduct.pricePerKgCompra) || 0,
+      pricePerKgVenda: Number(newProduct.pricePerKgVenda) || 0,
       stock: Number(newProduct.stock) || 0,
     };
 
@@ -74,7 +77,8 @@ export default function ProdutosPage() {
       setNewProduct({
         name: "",
         category: "",
-        pricePerKg: "", // Resetar para string vazia
+        pricePerKgCompra: "", // Resetar para string vazia
+        pricePerKgVenda: "", // Resetar para string vazia
         stock: "", // Resetar para string vazia
       });
     }
@@ -167,17 +171,36 @@ export default function ProdutosPage() {
             {/* Preço por kg */}
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700 mb-1">
-                Preço por kg (R$)
+                Preço por kg compra (R$)
               </label>
               <input
                 type="number"
                 placeholder="Ex: 9.90"
                 className="border rounded px-3 py-2"
-                value={newProduct.pricePerKg}
+                value={newProduct.pricePerKgCompra}
                 onChange={(e) =>
                   setNewProduct({
                     ...newProduct,
-                    pricePerKg: e.target.value, // Mantém como string
+                    pricePerKgCompra: e.target.value, // Mantém como string
+                  })
+                }
+              />
+            </div>
+
+            {/* Preço por kg */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-1">
+                Preço por kg venda (R$)
+              </label>
+              <input
+                type="number"
+                placeholder="Ex: 9.90"
+                className="border rounded px-3 py-2"
+                value={newProduct.pricePerKgVenda}
+                onChange={(e) =>
+                  setNewProduct({
+                    ...newProduct,
+                    pricePerKgVenda: e.target.value, // Mantém como string
                   })
                 }
               />
@@ -236,7 +259,10 @@ export default function ProdutosPage() {
                 Estoque (kg)
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Preço/kg
+                Preço/kg compra
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Preço/kg venda
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Ações
@@ -254,7 +280,10 @@ export default function ProdutosPage() {
                   {product.stock} kg
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  R$ {product.pricePerKg.toFixed(2)}
+                  R$ {(product.pricePerKgCompra ?? 0).toFixed(2)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  R$ {(product.pricePerKgVenda ?? 0).toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <button
@@ -293,9 +322,13 @@ export default function ProdutosPage() {
               <input type="text" placeholder="Categoria" className="border rounded px-3 py-2"
                 value={editProduct.category} onChange={(e) => setEditProduct({ ...editProduct, category: e.target.value })} />
               
-              <div>Preço por kg: </div>
-              <input type="number" placeholder="Preço por kg" className="border rounded px-3 py-2"
-                value={editProduct.pricePerKg} onChange={(e) => setEditProduct({ ...editProduct, pricePerKg: Number(e.target.value) })} />
+              <div>Preço por kg compra: </div>
+              <input type="number" placeholder="Preço por kg compra" className="border rounded px-3 py-2"
+                value={editProduct.pricePerKgCompra} onChange={(e) => setEditProduct({ ...editProduct, pricePerKgCompra: Number(e.target.value) })} />
+              
+              <div>Preço por kg venda: </div>
+              <input type="number" placeholder="Preço por kg venda" className="border rounded px-3 py-2"
+                value={editProduct.pricePerKgVenda} onChange={(e) => setEditProduct({ ...editProduct, pricePerKgVenda: Number(e.target.value) })} />
               
               <div>Quantidade no Estoque: </div>
               <input type="number" placeholder="Quantidade no Estoque" className="border rounded px-3 py-2"

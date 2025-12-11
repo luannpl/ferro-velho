@@ -9,7 +9,7 @@ interface PurchaseItem {
   productName: string;
   category: string;
   weight: number;
-  pricePerKg: number;
+  pricePerKgCompra: number;
   subtotal: number;
 }
 
@@ -18,7 +18,7 @@ interface Product {
   name: string;
   category: string;
   weight?: number;
-  pricePerKg: number;
+  pricePerKgCompra: number;
   stock?: number;
 }
 
@@ -34,7 +34,7 @@ export default function ComprasPage() {
     productName: "",
     category: "",
     weight: "",
-    pricePerKg: "",
+    pricePerKgCompra: "",
   });
 
   const [fornecedores, setFornecedores] = useState<FornecedorData[]>([]);
@@ -74,16 +74,16 @@ export default function ComprasPage() {
     if (
       !purchaseForm.productName ||
       !purchaseForm.weight ||
-      !purchaseForm.pricePerKg
+      !purchaseForm.pricePerKgCompra
     ) {
       alert("Preencha todos os campos obrigatórios!");
       return;
     }
 
     const weight = parseFloat(purchaseForm.weight);
-    const pricePerKg = parseFloat(purchaseForm.pricePerKg);
+    const pricePerKgCompra = parseFloat(purchaseForm.pricePerKgCompra);
 
-    if (isNaN(weight) || isNaN(pricePerKg)) {
+    if (isNaN(weight) || isNaN(pricePerKgCompra)) {
       alert("Peso ou preço inválido");
       return;
     }
@@ -92,8 +92,8 @@ export default function ComprasPage() {
       productName: purchaseForm.productName,
       category: purchaseForm.category || "Sem categoria",
       weight,
-      pricePerKg,
-      subtotal: +(weight * pricePerKg).toFixed(2),
+      pricePerKgCompra,
+      subtotal: +(weight * pricePerKgCompra).toFixed(2),
     };
 
     setPurchaseItems((prev) => [...prev, newItem]);
@@ -102,7 +102,7 @@ export default function ComprasPage() {
       productName: "",
       category: "",
       weight: "",
-      pricePerKg: "",
+      pricePerKgCompra: "",
     });
   };
 
@@ -149,7 +149,7 @@ export default function ComprasPage() {
       return {
         produtoId: productFound.id, // ESSENCIAL: ID do produto
         peso: item.weight,
-        precoKg: item.pricePerKg,
+        precoKg: item.pricePerKgCompra,
         subtotal: item.subtotal,
       };
     });
@@ -205,7 +205,7 @@ export default function ComprasPage() {
         itens: purchaseItems.map((i) => ({
           nome: i.productName,
           quantidade: i.weight,
-          precoUnitario: i.pricePerKg,
+          precoUnitario: i.pricePerKgCompra,
           precoTotal: i.subtotal,
         })),
       };
@@ -504,9 +504,9 @@ export default function ComprasPage() {
                     ...prev,
                     productName: value,
                     category: selected?.category || "",
-                    pricePerKg: selected
-                      ? String(selected.pricePerKg)
-                      : prev.pricePerKg,
+                    pricePerKgCompra: selected
+                      ? String(selected.pricePerKgCompra)
+                      : prev.pricePerKgCompra,
                   }));
                 }}
                 filterOption={(input: string, option?: OptionType) =>
@@ -559,11 +559,11 @@ export default function ComprasPage() {
               </label>
               <Input
                 type="number"
-                value={purchaseForm.pricePerKg}
+                value={purchaseForm.pricePerKgCompra}
                 onChange={(e) =>
                   setPurchaseForm({
                     ...purchaseForm,
-                    pricePerKg: e.target.value,
+                    pricePerKgCompra: e.target.value,
                   })
                 }
                 placeholder="0.00"
@@ -619,7 +619,7 @@ export default function ComprasPage() {
                       <td className="px-4 py-3">{item.category}</td>
                       <td className="px-4 py-3">{item.weight} kg</td>
                       <td className="px-4 py-3">
-                        R$ {item.pricePerKg.toFixed(2)}
+                        R$ {item.pricePerKgCompra.toFixed(2)}
                       </td>
                       <td className="px-4 py-3 font-bold text-blue-600">
                         R$ {item.subtotal.toFixed(2)}

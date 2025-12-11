@@ -1,64 +1,110 @@
 "use client";
 import { Search, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react"; 
 
-interface SaleItem {
-  product: Product;
-  quantity: number;
-  weight: number;
-  subtotal: number;
-}
+// --- Interfaces Atualizadas ---
 
 interface Product {
   id: number;
   name: string;
   category: string;
-  weight: number;
-  pricePerKg: number;
+  pricePerKgVenda: number | null; 
   stock: number;
+}
+
+interface Client {
+    id: number;
+    name: string;
+    cpf: string;
+    telefone: string;
+}
+
+interface SaleItem {
+  product: Product;
+  weight: number; 
+  subtotal: number;
+}
+
+// Assumindo que VendaData é importado de @/types
+interface VendaData {
+    clientId: number;
+    dataVenda: Date;
+    totalItens: number;
+    pesoTotal: number;
+    valorTotal: number;
+    itens: {
+        produtoId: number;
+        peso: number;
+        precoKg: number;
+        subtotal: number;
+    }[];
 }
 
 export default function VendasPage() {
   const [saleItems, setSaleItems] = useState<SaleItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [products] = useState<Product[]>([
-    {
-      id: 1,
-      name: "Ferro",
-      category: "Metais",
-      weight: 150,
-      pricePerKg: 2.5,
-      stock: 150,
-    },
-    {
-      id: 2,
-      name: "Alumínio",
-      category: "Metais",
-      weight: 80,
-      pricePerKg: 5.8,
-      stock: 80,
-    },
-    {
-      id: 3,
-      name: "Cobre",
-      category: "Metais",
-      weight: 45,
-      pricePerKg: 25.0,
-      stock: 45,
-    },
-  ]);
+  const [products, setProducts] = useState<Product[]>([]);
+  
+  // Novos estados para Cliente
+  const [clients, setClients] = useState<Client[]>([]); 
+  // O cliente ID 0 pode ser usado para 'Venda Avulsa', mas precisa existir no seu DB ou ser tratado
+  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
 
+  // --------------------------------------------------------
+  // 1. Efeitos para buscar Produtos e Clientes na inicialização
+  // --------------------------------------------------------
+  useEffect(() => {
+    const fetchProducts = async () => {
+      // Lógica de busca de produtos (já estava correta)
+      try {
+        const response = await fetch("/api/products");
+        if (!response.ok) throw new Error("Falha ao carregar produtos do servidor.");
+        const data: Product[] = await response.json();
+        
+        const productsFormatted: Product[] = data.map(p => ({
+            ...p,
+            pricePerKgVenda: p.pricePerKgVenda ?? 0, 
+            stock: p.stock ?? 0,
+        }));
+        setProducts(productsFormatted);
+      } catch (error) {
+        console.error("Erro ao buscar produtos:", error);
+      }
+    };
+    
+    const fetchClients = async () => {
+        // Lógica de busca de clientes
+        try {
+            const response = await fetch("/api/client"); // Endpoint criado no Passo 1
+            if (!response.ok) throw new Error("Falha ao carregar clientes.");
+            const data: Client[] = await response.json();
+            setClients(data);
+        } catch (error) {
+            console.error("Erro ao buscar clientes:", error);
+        }
+    };
+
+    fetchProducts();
+    fetchClients();
+  }, []); 
+
+  // --------------------------------------------------------
+  // 2. Lógica de Venda
+  // --------------------------------------------------------
   const addToSale = (product: Product) => {
+    const initialWeight = 0.1;
+    const price = product.pricePerKgVenda ?? 0;
+    
     const existing = saleItems.find((item) => item.product.id === product.id);
+
     if (existing) {
       setSaleItems(
         saleItems.map((item) =>
           item.product.id === product.id
             ? {
                 ...item,
-                weight: item.weight + 1,
-                quantity: item.quantity + 1,
-                subtotal: (item.weight + 1) * product.pricePerKg,
+                weight: item.weight + initialWeight,
+                subtotal: (item.weight + initialWeight) * price,
               }
             : item
         )
@@ -68,43 +114,92 @@ export default function VendasPage() {
         ...saleItems,
         {
           product,
-          quantity: 1,
-          weight: 1,
-          subtotal: product.pricePerKg,
+          weight: initialWeight,
+          subtotal: initialWeight * price,
         },
       ]);
     }
   };
+  
   const getTotalSale = () => {
     return saleItems.reduce((sum, item) => sum + item.subtotal, 0);
   };
-
+  
   const filteredProducts = products.filter(
     (p) =>
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  // 3. Função de Finalização Atualizada para enviar ao Backend
+  const finalizeSale = async () => {
+    if (saleItems.length === 0) return;
+    
+    // Alerta se nenhum cliente foi selecionado
+    if (selectedClientId === null) {
+        alert("Por favor, selecione um cliente antes de finalizar a venda.");
+        return;
+    }
 
-  const finalizeSale = () => {
-    alert(`Venda finalizada! Total: R$ ${getTotalSale().toFixed(2)}`);
-    setSaleItems([]);
+    const vendaData: VendaData = {
+        clientId: selectedClientId,
+        dataVenda: new Date(),
+        totalItens: saleItems.length,
+        pesoTotal: saleItems.reduce((sum, item) => sum + item.weight, 0),
+        valorTotal: getTotalSale(),
+        itens: saleItems.map(item => ({
+            produtoId: item.product.id,
+            peso: item.weight,
+            precoKg: item.product.pricePerKgVenda ?? 0,
+            subtotal: item.subtotal
+        }))
+    };
+    
+    try {
+        const response = await fetch("/api/vendas", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(vendaData),
+        });
+
+        if (response.ok) {
+            alert("Venda registrada com sucesso!");
+            setSaleItems([]);
+            setSelectedClientId(null); // Limpa o cliente após a venda
+            // Poderia recarregar os produtos aqui para atualizar o estoque
+        } else {
+            const error = await response.json();
+            alert(`Erro ao finalizar venda: ${error.error}`);
+        }
+    } catch (error) {
+        console.error("Erro na comunicação com a API:", error);
+        alert("Erro de comunicação ao finalizar venda.");
+    }
   };
+
   const removeFromSale = (productId: number) => {
     setSaleItems(saleItems.filter((item) => item.product.id !== productId));
   };
+  
   const updateSaleItemWeight = (productId: number, newWeight: number) => {
     setSaleItems(
-      saleItems.map((item) =>
-        item.product.id === productId
-          ? {
-              ...item,
-              weight: newWeight,
-              subtotal: newWeight * item.product.pricePerKg,
-            }
-          : item
-      )
+      saleItems.map((item) => {
+          if (item.product.id === productId) {
+              const price = item.product.pricePerKgVenda ?? 0;
+              return {
+                  ...item,
+                  weight: newWeight,
+                  subtotal: newWeight * price,
+              };
+          }
+          return item;
+      })
     );
   };
+
+  // --------------------------------------------------------
+  // 4. Renderização com Seletor de Cliente Único na Comanda
+  // --------------------------------------------------------
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Lista de Produtos */}
@@ -123,6 +218,11 @@ export default function VendasPage() {
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {products.length === 0 && (
+              <p className="col-span-2 text-center text-gray-500">
+                Carregando produtos ou nenhum produto encontrado.
+              </p>
+          )}
           {filteredProducts.map((product) => (
             <div
               key={product.id}
@@ -134,16 +234,17 @@ export default function VendasPage() {
                   <p className="text-sm text-gray-600">{product.category}</p>
                 </div>
                 <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">
-                  {product.stock} kg
+                  {product.stock.toFixed(2)} kg
                 </span>
               </div>
               <div className="flex justify-between items-center mt-3">
                 <span className="text-xl font-bold text-blue-600">
-                  R$ {product.pricePerKg.toFixed(2)}/kg
+                  R$ {(product.pricePerKgVenda ?? 0).toFixed(2)}/kg
                 </span>
                 <button
                   onClick={() => addToSale(product)}
                   className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                  disabled={product.stock <= 0}
                 >
                   Adicionar
                 </button>
@@ -163,9 +264,33 @@ export default function VendasPage() {
             </p>
           ) : (
             <>
+              {/* NOVO: SELECT DE CLIENTE ACIMA DOS ITENS */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Associar Cliente à Venda
+                </label>
+                <select
+                    value={selectedClientId ?? ""}
+                    onChange={(e) => setSelectedClientId(Number(e.target.value) || null)}
+                    className="w-full border rounded px-3 py-2 text-sm"
+                >
+                    <option value="">Selecione um cliente (Obrigatório)</option>
+                    {clients.map((client) => (
+                    <option key={client.id} value={client.id}>
+                        {client.name} ({client.cpf})
+                    </option>
+                    ))}
+                    {/* Exemplo para Venda Avulsa, se o ID 1 for reservado: */}
+                    {/* <option value={1}>Venda Avulsa (Cliente Padrão)</option> */}
+                </select>
+              </div>
+              
               <div className="space-y-3 mb-4 max-h-96 overflow-auto">
                 {saleItems.map((item) => (
                   <div key={item.product.id} className="border-b pb-3">
+                    
+                    {/* REMOVIDO: O select do cliente que estava aqui dentro do loop */}
+                    
                     <div className="flex justify-between items-start mb-2">
                       <span className="font-semibold">{item.product.name}</span>
                       <button
@@ -190,7 +315,7 @@ export default function VendasPage() {
                         step="0.1"
                       />
                       <span className="text-sm text-gray-600">
-                        kg × R$ {item.product.pricePerKg.toFixed(2)}
+                        kg × R$ {(item.product.pricePerKgVenda ?? 0).toFixed(2)}
                       </span>
                     </div>
                     <div className="text-right font-bold text-blue-600">
@@ -209,6 +334,8 @@ export default function VendasPage() {
                 <button
                   onClick={finalizeSale}
                   className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-bold"
+                  // Desabilita se não houver itens ou cliente selecionado
+                  disabled={saleItems.length === 0 || selectedClientId === null}
                 >
                   Finalizar Venda
                 </button>

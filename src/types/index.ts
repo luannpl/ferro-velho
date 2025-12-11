@@ -2,7 +2,8 @@ export type ProductData = {
   id: number;
   name: string;
   category: string;
-  pricePerKg: number;
+  pricePerKgCompra: number;
+  pricePerKgVenda: number;
   stock: number;
 };
 
