@@ -9,6 +9,7 @@ interface InfoTransacaoProps {
     bgColorIcon: string;
     textColorIcon: string;
     textColorValue: string;
+    isNegative?: boolean;
 }
 
 export default function InfoTransacao({
@@ -19,7 +20,8 @@ export default function InfoTransacao({
     icon,
     bgColorIcon,
     textColorIcon,
-    textColorValue
+    textColorValue,
+    isNegative
 }: InfoTransacaoProps) {
     return (
         <div className="rounded-xl border border-gray-100 p-4 flex flex-col w-full">
@@ -30,7 +32,9 @@ export default function InfoTransacao({
                     <p className="text-muted-foreground text-sm">{data}</p>
                 </div>
                 <div className="ml-auto flex flex-col items-end">
-                    <h4 className={`scroll-m-20 text-xl font-semibold tracking-tight ${textColorValue}`}>+ R$ {valor}</h4>
+                    <h4 className={`scroll-m-20 text-xl font-semibold tracking-tight ${textColorValue}`}>
+                        {isNegative ? '- ' : '+ '} R$ {valor.toFixed(2)}
+                    </h4>
                     <p className="text-muted-foreground text-sm">{tipo}</p>
                 </div>
             </div>

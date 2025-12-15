@@ -75,3 +75,13 @@ export type Dashboard = {
   totalInStock: number;
   salesToday: number;
 }
+
+export type CaixaData = {
+  id: number;
+  dataCaixaAbertura: Date;
+  dataCaixaFechamento: Date;
+  lucro: number;
+  despesa: number;
+  receita: number;
+  numTransacoes: number;
+}
