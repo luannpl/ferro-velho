@@ -6,21 +6,21 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-1.1.x"]
 }
 
 model Product {
-  id          Int          @id @default(autoincrement())
-  name        String
-  category    String
+  id               Int          @id @default(autoincrement())
+  name             String
+  category         String
   pricePerKgCompra Float?
   pricePerKgVenda  Float?
-  stock       Float 
-  itensCompra ItemCompra[]
-  itensVenda  ItemVenda[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  stock            Float
+  itensCompra      ItemCompra[]
+  itensVenda       ItemVenda[]
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 }
 
 model Client {
@@ -31,8 +31,11 @@ model Client {
   telefone  String
   cpf       String
   vendas    Venda[]
+  compras   Compra[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("clientes")
 }
 
 model Compra {
@@ -42,8 +45,10 @@ model Compra {
   totalItens   Int          @default(0)
   pesoTotal    Decimal      @default(0.00)
   valorTotal   Decimal      @default(0.00)
-  fornecedor   Fornecedor   @relation(fields: [fornecedorId], references: [id])
+  fornecedor   Client       @relation(fields: [fornecedorId], references: [id])
   itens        ItemCompra[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   @@map("compras")
 }
@@ -62,55 +67,43 @@ model ItemCompra {
 }
 
 model Venda {
-  id          Int        @id @default(autoincrement())
-  clientId    Int
-  dataVenda   DateTime   @default(now())
-  totalItens  Int        @default(0)
-  pesoTotal   Decimal    @default(0.00)
-  valorTotal  Decimal    @default(0.00)
+  id         Int      @id @default(autoincrement())
+  clientId   Int
+  dataVenda  DateTime @default(now())
+  totalItens Int      @default(0)
+  pesoTotal  Decimal  @default(0.00)
+  valorTotal Decimal  @default(0.00)
 
-  client      Client     @relation(fields: [clientId], references: [id])
-  itens       ItemVenda[] // relação correta com ItemVenda
+  client Client      @relation(fields: [clientId], references: [id])
+  itens  ItemVenda[] // relação correta com ItemVenda
 
   @@map("vendas")
 }
 
 model ItemVenda {
-  id          Int      @id @default(autoincrement())
-  vendaId     Int
-  produtoId   Int
-  peso        Decimal
-  precoKg     Decimal
-  subtotal    Decimal   @default(0.00)
+  id        Int     @id @default(autoincrement())
+  vendaId   Int
+  produtoId Int
+  peso      Decimal
+  precoKg   Decimal
+  subtotal  Decimal @default(0.00)
 
-  venda       Venda     @relation(fields: [vendaId], references: [id], onDelete: Cascade)
-  produto     Product   @relation(fields: [produtoId], references: [id])
+  venda   Venda   @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+  produto Product @relation(fields: [produtoId], references: [id])
 
   @@map("itens_venda")
 }
 
-model Fornecedor {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String?
-  telefone  String?
-  compras   Compra[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("fornecedores")
-}
-
 model Caixa {
-  id                    Int        @id @default(autoincrement())
-  dataCaixaAbertura     DateTime   @default(now())
-  dataCaixaFechamento   DateTime?
-  lucro                 Decimal    @default(0.00)
-  despesa               Decimal    @default(0.00)
-  receita               Decimal    @default(0.00)
-  numTransacoes         Int        @default(0)
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
+  id                  Int       @id @default(autoincrement())
+  dataCaixaAbertura   DateTime  @default(now())
+  dataCaixaFechamento DateTime?
+  lucro               Decimal   @default(0.00)
+  despesa             Decimal   @default(0.00)
+  receita             Decimal   @default(0.00)
+  numTransacoes       Int       @default(0)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   @@map("caixas")
 }

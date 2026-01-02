@@ -37,7 +37,6 @@ const menuItems: MenuItem[] = [
     path: "/transferencia",
   },
   { id: "clientes", icon: Users, label: "Clientes", path: "/clientes" },
-  { id: "fornecedor", icon: Users, label: "Fornecedor", path: "/fornecedor" },
 ];
 
 // Componente da Sidebar
