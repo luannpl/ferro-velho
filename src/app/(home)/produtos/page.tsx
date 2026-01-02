@@ -133,9 +133,9 @@ export default function ProdutosPage() {
       </div>
 
       {showProductForm && (
-        <div className="bg-white p-6 rounded-lg shadow mb-6">
+        <div className="bg-white p-4 md:p-6 rounded-lg shadow mb-6">
           <h3 className="text-xl font-bold mb-4">Cadastrar Produto</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Nome do produto */}
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700 mb-1">
@@ -168,7 +168,7 @@ export default function ProdutosPage() {
               />
             </div>
 
-            {/* Preço por kg */}
+            {/* Preço por kg compra */}
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700 mb-1">
                 Preço por kg compra (R$)
@@ -181,13 +181,13 @@ export default function ProdutosPage() {
                 onChange={(e) =>
                   setNewProduct({
                     ...newProduct,
-                    pricePerKgCompra: e.target.value, // Mantém como string
+                    pricePerKgCompra: e.target.value,
                   })
                 }
               />
             </div>
 
-            {/* Preço por kg */}
+            {/* Preço por kg venda */}
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700 mb-1">
                 Preço por kg venda (R$)
@@ -200,14 +200,14 @@ export default function ProdutosPage() {
                 onChange={(e) =>
                   setNewProduct({
                     ...newProduct,
-                    pricePerKgVenda: e.target.value, // Mantém como string
+                    pricePerKgVenda: e.target.value,
                   })
                 }
               />
             </div>
 
             {/* Estoque */}
-            <div className="flex flex-col">
+            <div className="flex flex-col md:col-span-2">
               <label className="text-sm font-medium text-gray-700 mb-1">
                 Estoque (kg)
               </label>
@@ -219,7 +219,7 @@ export default function ProdutosPage() {
                 onChange={(e) =>
                   setNewProduct({
                     ...newProduct,
-                    stock: e.target.value, // Mantém como string
+                    stock: e.target.value,
                   })
                 }
               />
@@ -227,16 +227,16 @@ export default function ProdutosPage() {
           </div>
 
           {/* Botões */}
-          <div className="flex w-full justify-end space-x-2 mt-4">
+          <div className="flex flex-col sm:flex-row w-full justify-end gap-3 mt-4">
             <button
               onClick={() => setShowProductForm(false)}
-              className="bg-red-400 text-white px-4 py-2 rounded hover:bg-red-500 cursor-pointer"
+              className="bg-red-400 text-white px-4 py-2 rounded hover:bg-red-500 cursor-pointer order-2 sm:order-1"
             >
               Cancelar
             </button>
             <button
               onClick={handleCreateProduct}
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer"
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer order-1 sm:order-2"
             >
               Cadastrar
             </button>
@@ -244,65 +244,110 @@ export default function ProdutosPage() {
         </div>
       )}
 
+      {/* MOBILE: Cards */}
+      <div className="md:hidden space-y-4">
+        {products.map((product) => (
+          <div key={product.id} className="bg-white p-4 rounded-lg shadow border border-gray-100">
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <h4 className="font-bold text-lg text-gray-900">{product.name}</h4>
+                <p className="text-sm text-gray-600">{product.category}</p>
+              </div>
+              <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
+                {product.stock} kg
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="bg-blue-50 p-3 rounded">
+                <p className="text-xs text-gray-600 mb-1">Compra/kg</p>
+                <p className="font-bold text-blue-600">R$ {(product.pricePerKgCompra ?? 0).toFixed(2)}</p>
+              </div>
+              <div className="bg-green-50 p-3 rounded">
+                <p className="text-xs text-gray-600 mb-1">Venda/kg</p>
+                <p className="font-bold text-green-600">R$ {(product.pricePerKgVenda ?? 0).toFixed(2)}</p>
+              </div>
+            </div>
+            
+            <div className="flex gap-2 pt-3 border-t border-gray-200">
+              <button
+                onClick={() => setEditProduct(product)}
+                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+                <Edit2 size={16} />
+                <span>Editar</span>
+              </button>
+              <button
+                onClick={() => setDeleteProductId(product.id)}
+                className="flex-1 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors flex items-center justify-center gap-2">
+                <Trash2 size={16} />
+                <span>Excluir</span>
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Produto
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Categoria
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Estoque (kg)
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Preço/kg compra
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Preço/kg venda
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Ações
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {products.map((product) => (
-              <tr key={product.id}>
-                <td className="px-6 py-4 whitespace-nowrap">{product.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {product.category}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {product.stock} kg
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  R$ {(product.pricePerKgCompra ?? 0).toFixed(2)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  R$ {(product.pricePerKgVenda ?? 0).toFixed(2)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <button
-                    onClick={() => setEditProduct(product)}
-                    className="text-blue-600 hover:text-blue-800 mr-3"
-                  >
-                    <Edit2 size={18} />
-                  </button>
-                  <button
-                    onClick={() => setDeleteProductId(product.id)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </td>
+      {/* DESKTOP: Tabela */}
+      <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Produto
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Categoria
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Estoque (kg)
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Preço/kg compra
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Preço/kg venda
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Ações
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {products.map((product) => (
+                <tr key={product.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">{product.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {product.category}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {product.stock} kg
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    R$ {(product.pricePerKgCompra ?? 0).toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    R$ {(product.pricePerKgVenda ?? 0).toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <button
+                      onClick={() => setEditProduct(product)}
+                      className="text-blue-600 hover:text-blue-800 mr-3"
+                    >
+                      <Edit2 size={18} />
+                    </button>
+                    <button
+                      onClick={() => setDeleteProductId(product.id)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       {/* DIALOG DE EDIÇÃO */}
       <Dialog open={!!editProduct} onOpenChange={(open) => !open && setEditProduct(null)}>
@@ -313,7 +358,7 @@ export default function ProdutosPage() {
           </DialogHeader>
 
           {editProduct && (
-            <div className='grid grid-cols-2 gap-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <div>Nome: </div>
               <input type="text" placeholder="Nome" className="border rounded px-3 py-2"
                 value={editProduct.name} onChange={(e) => setEditProduct({ ...editProduct, name: e.target.value })} />
@@ -336,13 +381,13 @@ export default function ProdutosPage() {
             </div>
           )}
 
-          <div className="flex justify-end space-x-3 mt-4">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4">
             <button
               onClick={() => setEditProduct(null)}
-              className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">Cancelar</button>
+              className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 order-2 sm:order-1">Cancelar</button>
             <button
               onClick={handleUpdateProduct}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Salvar</button>
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 order-1 sm:order-2">Salvar</button>
           </div>
         </DialogContent>
       </Dialog>

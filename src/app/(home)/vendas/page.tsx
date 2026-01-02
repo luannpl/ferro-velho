@@ -183,10 +183,10 @@ export default function VendasPage() {
   // 4. Renderização com Seletor de Cliente Único na Comanda
   // --------------------------------------------------------
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6">
       {/* Lista de Produtos */}
       <div className="lg:col-span-2">
-        <h2 className="text-3xl font-bold mb-6">Nova Venda</h2>
+        <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6">Nova Venda</h2>
         <div className="bg-white p-4 rounded-lg shadow mb-4">
           <div className="relative">
             <Search className="absolute left-3 top-3 text-gray-400" size={20} />
@@ -199,7 +199,7 @@ export default function VendasPage() {
             />
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {products.length === 0 && (
               <p className="col-span-2 text-center text-gray-500">
                 Carregando produtos ou nenhum produto encontrado.
@@ -225,7 +225,7 @@ export default function VendasPage() {
                 </span>
                 <button
                   onClick={() => addToSale(product)}
-                  className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                   disabled={product.stock <= 0}
                 >
                   Adicionar
@@ -238,7 +238,7 @@ export default function VendasPage() {
 
       {/* Comanda */}
       <div className="lg:col-span-1">
-        <div className="bg-white rounded-lg shadow p-4 sticky top-6">
+        <div className="bg-white rounded-lg shadow p-4 lg:sticky lg:top-6">
           <h3 className="text-xl font-bold mb-4">Comanda</h3>
           {saleItems.length === 0 ? (
             <p className="text-gray-500 text-center py-8">
@@ -280,9 +280,9 @@ export default function VendasPage() {
                       <span className="font-semibold">{item.product.name}</span>
                       <button
                         onClick={() => removeFromSale(item.product.id)}
-                        className="text-red-600 hover:text-red-800"
+                        className="text-red-600 hover:text-red-800 p-1"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={18} />
                       </button>
                     </div>
                     <div className="flex items-center space-x-2 mb-2">

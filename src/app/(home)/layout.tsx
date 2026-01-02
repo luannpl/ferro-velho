@@ -12,6 +12,7 @@ import {
   Menu,
   RefreshCcw,
   LogOut,
+  X,
 } from "lucide-react";
 import { useRouter, usePathname, redirect } from "next/navigation";
 
@@ -44,18 +45,28 @@ const Sidebar = ({
   sidebarOpen,
   activePath,
   navigateTo,
+  closeSidebar,
 }: {
   sidebarOpen: boolean;
   activePath: string;
   navigateTo: (path: string) => void;
+  closeSidebar: () => void;
 }) => {
   return (
     <div
-      className={`${
-        sidebarOpen ? "w-64" : "w-0"
-      } bg-gray-900 text-white transition-all duration-300 overflow-hidden h-screen`}
+      className={`
+        bg-gray-900 text-white transition-all duration-300 overflow-hidden h-screen
+        ${sidebarOpen ? "fixed inset-0 z-50 w-full md:relative md:w-64" : "w-0"}
+      `}
     >
       <div className="p-4">
+        {/* Botão de fechar visível apenas em mobile */}
+        <div className="flex justify-end md:hidden mb-4">
+          <button onClick={closeSidebar} className="text-white hover:text-gray-300">
+            <X size={24} />
+          </button>
+        </div>
+
         {/* <h1 className="text-2xl font-bold mb-8">
           <Link href="/">Ferro Velho</Link>
         </h1> */}
@@ -93,6 +104,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const navigateTo = (path: string) => {
     router.push(path);
+    // Fecha a sidebar se estiver em mobile
+    if (window.innerWidth < 768) {
+      setSidebarOpen(false);
+    }
   };
 
   return (
@@ -101,6 +116,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         sidebarOpen={sidebarOpen}
         activePath={pathname}
         navigateTo={navigateTo}
+        closeSidebar={() => setSidebarOpen(false)}
       />
 
       <div className="flex-1 overflow-auto bg-gray-100">

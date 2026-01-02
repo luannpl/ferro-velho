@@ -26,37 +26,37 @@ export default function DashboardPage() {
     }
     return (
         <div>
-            <h2 className="text-3xl font-bold mb-6">Dashboard</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6">Dashboard</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                <div className="bg-white p-4 md:p-6 rounded-lg shadow">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-gray-600 text-sm">Total em Estoque</p>
-                            <p className="text-2xl font-bold">
+                            <p className="text-xl md:text-2xl font-bold">
                                {dashboardData.totalInStock} kg
                             </p>
                         </div>
-                        <Package className="text-blue-600" size={40} />
+                        <Package className="text-blue-600" size={32} />
                     </div>
                 </div>
-                <div className="bg-white p-6 rounded-lg shadow">
+                <div className="bg-white p-4 md:p-6 rounded-lg shadow">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-gray-600 text-sm">
                                 Produtos Cadastrados
                             </p>
-                            <p className="text-2xl font-bold">{dashboardData.totalProducts}</p>
+                            <p className="text-xl md:text-2xl font-bold">{dashboardData.totalProducts}</p>
                         </div>
-                        <Package className="text-green-600" size={40} />
+                        <Package className="text-green-600" size={32} />
                     </div>
                 </div>
-                <div className="bg-white p-6 rounded-lg shadow">
+                <div className="bg-white p-4 md:p-6 rounded-lg shadow">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-gray-600 text-sm">Total de vendas do dia</p>
-                            <p className="text-2xl font-bold">{dashboardData.salesToday}</p>
+                            <p className="text-xl md:text-2xl font-bold">{dashboardData.salesToday}</p>
                         </div>
-                        <DollarSign className="text-yellow-600" size={40} />
+                        <DollarSign className="text-yellow-600" size={32} />
                     </div>
                 </div>
             </div>

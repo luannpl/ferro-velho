@@ -475,11 +475,11 @@ export default function ComprasPage() {
     }
   };
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2">
-        <h2 className="text-3xl font-bold mb-6">Nova Compra</h2>
+        <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6">Nova Compra</h2>
 
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <div className="bg-white rounded-lg shadow p-4 md:p-6 mb-6">
           <h3 className="text-xl font-bold mb-4">Adicionar Item</h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -571,7 +571,7 @@ export default function ComprasPage() {
 
           <button
             onClick={addPurchaseItem}
-            className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2 cursor-pointer"
+            className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2 cursor-pointer w-full sm:w-auto"
           >
             <Plus size={20} />
             <span>Adicionar à Compra</span>
@@ -580,11 +580,51 @@ export default function ComprasPage() {
 
         {/* Tabela de Itens */}
         {purchaseItems.length > 0 && (
-          <div className="bg-white rounded-lg shadow">
+          <div className="bg-white rounded-lg shadow mb-6 lg:mb-0">
             <div className="p-4 border-b">
               <h3 className="text-lg font-bold">Itens da Compra</h3>
             </div>
-            <div className="overflow-x-auto">
+            
+            {/* MOBILE: Cards */}
+            <div className="md:hidden p-4 space-y-4">
+              {purchaseItems.map((item, index) => (
+                <div key={index} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h4 className="font-bold text-gray-900">{item.productName}</h4>
+                      <p className="text-sm text-gray-600">{item.category}</p>
+                    </div>
+                    <button
+                      onClick={() => removePurchaseItem(index)}
+                      className="text-red-600 hover:text-red-800 p-1"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-xs text-gray-600">Peso</p>
+                      <p className="font-semibold">{item.weight} kg</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-600">Preço/kg</p>
+                      <p className="font-semibold">R$ {item.pricePerKgCompra.toFixed(2)}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-3 pt-3 border-t">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Subtotal</span>
+                      <span className="text-lg font-bold text-blue-600">R$ {item.subtotal.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* DESKTOP: Tabela */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
@@ -638,8 +678,8 @@ export default function ComprasPage() {
       </div>
 
       {/* Resumo da Compra (fornecedor) */}
-      <div className="lg:col-span-1 mt-[60px]">
-        <div className="bg-white rounded-lg shadow p-6 sticky top-6">
+      <div className="lg:col-span-1">
+        <div className="bg-white rounded-lg shadow p-4 md:p-6 lg:sticky lg:top-6">
           <h3 className="text-xl font-bold mb-4">Resumo da Compra</h3>
 
           <div className="mb-4">
