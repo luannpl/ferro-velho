@@ -1,6 +1,6 @@
 import { CompraData} from "@/types";
 import { compraRepository } from "./compra.repository";
-import { fornecedorService } from "../fornecedores/fornecedores.service";
+import { clientService } from "../client/client.service";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
@@ -10,12 +10,15 @@ export const compraService = {
     return compras;
   },
   create: async (data: CompraData) => {
-    if (!data.fornecedorId) throw new Error("Fornecedor é obrigatório");
+    // Fornecedor agora é OPCIONAL
     if (!data.itens || data.itens.length === 0)
       throw new Error("A compra deve ter pelo menos um item");
 
-    const fornecedor = await fornecedorService.findById(data.fornecedorId);
-    if (!fornecedor) throw new Error("Fornecedor não encontrado");
+    // Validar fornecedor apenas se foi fornecido
+    if (data.fornecedorId) {
+      const fornecedor = await clientService.getById(data.fornecedorId);
+      if (!fornecedor) throw new Error("Fornecedor não encontrado");
+    }
 
     const pesoTotal = data.itens.reduce(
       (sum, item) => sum + item.peso,

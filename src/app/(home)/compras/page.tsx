@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Plus, Trash2, Package } from "lucide-react";
 import { Input, Select } from "antd";
 
-import { CompraDataResponse, FornecedorData } from "@/types";
+import { CompraDataResponse, ClientData } from "@/types";
 
 interface PurchaseItem {
   productName: string;
@@ -37,7 +37,7 @@ export default function ComprasPage() {
     pricePerKgCompra: "",
   });
 
-  const [fornecedores, setFornecedores] = useState<FornecedorData[]>([]);
+  const [fornecedores, setFornecedores] = useState<ClientData[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
 
   const [selectedSupplier, setSelectedSupplier] = useState<string>("");
@@ -45,23 +45,23 @@ export default function ComprasPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [productsRes, fornecedoresRes] = await Promise.all([
+        const [productsRes, clientsRes] = await Promise.all([
           fetch("/api/products"),
-          fetch("/api/fornecedores"),
+          fetch("/api/client"),
         ]);
 
-        if (!productsRes.ok || !fornecedoresRes.ok) {
-          console.error("Erro carregando produtos ou fornecedores.");
+        if (!productsRes.ok || !clientsRes.ok) {
+          console.error("Erro carregando produtos ou pessoas.");
           return;
         }
 
-        const [productsData, fornecedoresData] = await Promise.all([
+        const [productsData, clientsData] = await Promise.all([
           productsRes.json(),
-          fornecedoresRes.json(),
+          clientsRes.json(),
         ]);
 
         setProducts(productsData);
-        setFornecedores(fornecedoresData);
+        setFornecedores(clientsData);
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
       }
@@ -118,7 +118,6 @@ export default function ComprasPage() {
     // -------------------------------------------------------------------
     // --- 1. VALIDAÇÕES E ENCONTRAR FORNECEDOR ---
     // -------------------------------------------------------------------
-    // Alteração: Substituído 'alert()' por 'console.error()' ou implementação de modal UI customizado, conforme as boas práticas do ambiente Canvas.
     const customAlert = (message: string) => console.error("Aviso:", message);
 
     if (purchaseItems.length === 0) {
@@ -126,16 +125,10 @@ export default function ComprasPage() {
       return;
     }
 
-    if (!selectedSupplier) {
-      customAlert("Selecione um fornecedor para a nota antes de finalizar.");
-      return;
-    }
-
-    const fornecedor = fornecedores.find((f) => f.name === selectedSupplier);
-    if (!fornecedor) {
-      customAlert("Fornecedor selecionado inválido.");
-      return;
-    }
+    // Fornecedor agora é OPCIONAL
+    const fornecedor = selectedSupplier 
+      ? fornecedores.find((f) => f.name === selectedSupplier)
+      : null;
 
     const itensCompraData = purchaseItems.map((item) => {
       const productFound = products.find((p) => p.name === item.productName);
@@ -169,7 +162,7 @@ export default function ComprasPage() {
     }).replace(',', ''); // Remoção da vírgula para simular o formato da imagem
 
     const payload = {
-      fornecedorId: fornecedor.id,
+      fornecedorId: fornecedor?.id || null,
       totalItens: itensCompraData.length,
       pesoTotal: totalPeso,
       valorTotal: totalValor,
@@ -198,9 +191,12 @@ export default function ComprasPage() {
         totalItens: purchaseItems.length,
         valorTotal: totalValor,
         pedidoId: result.compra.id,
-        fornecedor: {
+        fornecedor: fornecedor ? {
           nome: fornecedor.name,
           telefone: fornecedor.telefone,
+        } : {
+          nome: "COMPRA AVULSA",
+          telefone: "-",
         },
         itens: purchaseItems.map((i) => ({
           nome: i.productName,
@@ -648,14 +644,15 @@ export default function ComprasPage() {
 
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Fornecedor *
+              Fornecedor (Opcional)
             </label>
             <Select
               showSearch
-              placeholder="Selecione o fornecedor"
+              placeholder="Selecione o fornecedor ou deixe vazio para compra avulsa"
               style={{ width: "100%" }}
               value={selectedSupplier || undefined}
               onChange={(value) => setSelectedSupplier(value)}
+              allowClear
               filterOption={(input, option) =>
                 (option?.label ?? "")
                   .toLowerCase()
@@ -666,6 +663,11 @@ export default function ComprasPage() {
                 label: f.name,
               }))}
             />
+            {!selectedSupplier && (
+              <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                <span className="font-semibold">⚠️ Compra Avulsa:</span> Nenhum fornecedor associado
+              </p>
+            )}
           </div>
 
           {purchaseItems.length === 0 ? (
@@ -701,12 +703,7 @@ export default function ComprasPage() {
 
               <button
                 onClick={finalizePurchase}
-                className={`w-full py-3 rounded-lg font-bold ${
-                  selectedSupplier
-                    ? "bg-green-600 text-white hover:bg-green-700"
-                    : "bg-gray-300 text-gray-700 cursor-not-allowed"
-                }`}
-                disabled={!selectedSupplier}
+                className="w-full py-3 rounded-lg font-bold bg-green-600 text-white hover:bg-green-700 transition-colors"
               >
                 Finalizar Compra
               </button>

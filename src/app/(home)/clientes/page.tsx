@@ -112,7 +112,7 @@ export default function ClientePage() {
         <h2 className="text-3xl font-bold">Clientes</h2>
         <button
           onClick={() => setShowClientForm(true)}
-          className='bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700'
+          className='bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700 transition-all duration-200 hover:shadow-lg'
         >
           <Plus size={20} />
           <span>Novo Cliente</span>
@@ -121,25 +121,25 @@ export default function ClientePage() {
 
       {/* FORMULÁRIO DE CADASTRO */}
       {showClientForm && (
-        <div className='bg-white p-6 rounded-lg shadow mb-6'>
-          <h3 className='text-xl font-bold mb-4'>Cadastrar Cliente</h3>
+        <div className='bg-white p-6 rounded-lg shadow-md mb-6 border border-gray-100'>
+          <h3 className='text-xl font-bold mb-4 text-gray-800'>Cadastrar Cliente</h3>
           <div className='grid grid-cols-2 gap-4'>
-            <input type="text" placeholder='Nome' className='border rounded px-3 py-2'
+            <input type="text" placeholder='Nome' className='border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all'
               value={newClient.name} onChange={(e) => setNewClient({ ...newClient, name: e.target.value })} />
-            <input type='number' placeholder='Idade' className='border rounded px-3 py-2'
+            <input type='number' placeholder='Idade' className='border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all'
               value={newClient.idade} onChange={(e) => setNewClient({ ...newClient, idade: e.target.value })} />
-            <input type="text" placeholder="Telefone" className="border rounded px-3 py-2"
+            <input type="text" placeholder="Telefone" className="border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
               value={newClient.telefone} onChange={(e) => setNewClient({ ...newClient, telefone: e.target.value })} />
-            <input type="text" placeholder="CPF" className="border rounded px-3 py-2"
+            <input type="text" placeholder="CPF" className="border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
               value={newClient.cpf} onChange={(e) => setNewClient({ ...newClient, cpf: e.target.value })} />
-            <input type="text" placeholder='Email' className='border rounded px-3 py-2 col-span-2'
+            <input type="text" placeholder='Email' className='border rounded px-3 py-2 col-span-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all'
               value={newClient.email} onChange={(e) => setNewClient({ ...newClient, email: e.target.value })} />
           </div>
           <div className='flex justify-end space-x-3 mt-4'>
             <button onClick={handlerCreateClient}
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Criar</button>
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-all duration-200 hover:shadow-md">Criar</button>
             <button onClick={() => setShowClientForm(false)}
-              className="bg-red-400 text-white px-4 py-2 rounded hover:bg-red-500">Cancelar</button>
+              className="bg-red-400 text-white px-4 py-2 rounded hover:bg-red-500 transition-all duration-200 hover:shadow-md">Cancelar</button>
           </div>
         </div>
       )}
@@ -159,7 +159,7 @@ export default function ClientePage() {
           </thead>
           <tbody className="divide-y divide-gray-200">
             {client.map((client) => (
-              <tr key={client.id}>
+              <tr key={client.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap">{client.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{client.idade}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{client.email}</td>
@@ -168,12 +168,12 @@ export default function ClientePage() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <button
                     onClick={() => setEditClient(client)} // abre o dialog
-                    className="text-blue-600 hover:text-blue-800 mr-3">
+                    className="text-blue-600 hover:text-blue-800 mr-3 transition-colors">
                     <Edit2 size={18} />
                   </button>
                   <button
                     onClick={() => setDeleteClientId(client.id)}
-                    className="text-red-600 hover:text-red-800">
+                    className="text-red-600 hover:text-red-800 transition-colors">
                     <Trash2 size={18} />
                   </button>
                 </td>

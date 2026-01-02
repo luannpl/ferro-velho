@@ -9,7 +9,7 @@ export const vendasService = {
         return vendas;
     },
     create: async (data: VendaData) => {
-        if (!data.clientId) throw new Error("Cliente é obrigatório");
+        // Cliente agora é OPCIONAL
         if (!data.itens || data.itens.length === 0)
             throw new Error("A venda deve ter pelo menos um item");
 

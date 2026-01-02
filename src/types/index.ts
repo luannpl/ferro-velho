@@ -16,12 +16,7 @@ export type ClientData = {
   cpf: string;
 };
 
-export type FornecedorData = {
-  id: number;
-  name: string;
-  telefone?: string;
-  email?: string;
-};
+
 
 export type ItemCompraData = {
   produtoId: number;
@@ -31,7 +26,7 @@ export type ItemCompraData = {
 }
 
 export type CompraData = {
-  fornecedorId: number;
+  fornecedorId?: number | null;
   totalItens: number;
   pesoTotal: number;
   valorTotal: number;
@@ -41,7 +36,7 @@ export type CompraData = {
 
 export interface CompraResponseItem {
   id: number;
-  fornecedorId: number;
+  fornecedorId?: number | null;
   dataCompra: string; // vem como string no JSON
   totalItens: number;
   pesoTotal: string;  // vem como string no JSON
@@ -55,7 +50,7 @@ export interface CompraDataResponse {
 
 
 export type VendaData = {
-  clientId: number;
+  clientId?: number | null;
   dataVenda: Date;
   totalItens: number;
   pesoTotal: number;

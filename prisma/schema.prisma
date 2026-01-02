@@ -40,12 +40,12 @@ model Client {
 
 model Compra {
   id           Int          @id @default(autoincrement())
-  fornecedorId Int
+  fornecedorId Int?
   dataCompra   DateTime     @default(now())
   totalItens   Int          @default(0)
   pesoTotal    Decimal      @default(0.00)
   valorTotal   Decimal      @default(0.00)
-  fornecedor   Client       @relation(fields: [fornecedorId], references: [id])
+  fornecedor   Client?      @relation(fields: [fornecedorId], references: [id])
   itens        ItemCompra[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
@@ -68,13 +68,13 @@ model ItemCompra {
 
 model Venda {
   id         Int      @id @default(autoincrement())
-  clientId   Int
+  clientId   Int?
   dataVenda  DateTime @default(now())
   totalItens Int      @default(0)
   pesoTotal  Decimal  @default(0.00)
   valorTotal Decimal  @default(0.00)
 
-  client Client      @relation(fields: [clientId], references: [id])
+  client Client?     @relation(fields: [clientId], references: [id])
   itens  ItemVenda[] // relação correta com ItemVenda
 
   @@map("vendas")

@@ -1,6 +1,7 @@
 "use client";
 import { Search, Trash2 } from "lucide-react";
-import { useState, useEffect } from "react"; 
+import { useState, useEffect } from "react";
+import { VendaData } from "@/types"; 
 
 // --- Interfaces Atualizadas ---
 
@@ -25,20 +26,7 @@ interface SaleItem {
   subtotal: number;
 }
 
-// Assumindo que VendaData é importado de @/types
-interface VendaData {
-    clientId: number;
-    dataVenda: Date;
-    totalItens: number;
-    pesoTotal: number;
-    valorTotal: number;
-    itens: {
-        produtoId: number;
-        peso: number;
-        precoKg: number;
-        subtotal: number;
-    }[];
-}
+
 
 export default function VendasPage() {
   const [saleItems, setSaleItems] = useState<SaleItem[]>([]);
@@ -134,12 +122,6 @@ export default function VendasPage() {
   // 3. Função de Finalização Atualizada para enviar ao Backend
   const finalizeSale = async () => {
     if (saleItems.length === 0) return;
-    
-    // Alerta se nenhum cliente foi selecionado
-    if (selectedClientId === null) {
-        alert("Por favor, selecione um cliente antes de finalizar a venda.");
-        return;
-    }
 
     const vendaData: VendaData = {
         clientId: selectedClientId,
@@ -267,22 +249,25 @@ export default function VendasPage() {
               {/* NOVO: SELECT DE CLIENTE ACIMA DOS ITENS */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Associar Cliente à Venda
+                    Associar Cliente à Venda (Opcional)
                 </label>
                 <select
                     value={selectedClientId ?? ""}
                     onChange={(e) => setSelectedClientId(Number(e.target.value) || null)}
                     className="w-full border rounded px-3 py-2 text-sm"
                 >
-                    <option value="">Selecione um cliente (Obrigatório)</option>
+                    <option value="">Venda Avulsa (Sem Cliente)</option>
                     {clients.map((client) => (
                     <option key={client.id} value={client.id}>
                         {client.name} ({client.cpf})
                     </option>
                     ))}
-                    {/* Exemplo para Venda Avulsa, se o ID 1 for reservado: */}
-                    {/* <option value={1}>Venda Avulsa (Cliente Padrão)</option> */}
                 </select>
+                {!selectedClientId && (
+                  <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                    <span className="font-semibold">⚠️ Venda Avulsa:</span> Nenhum cliente associado
+                  </p>
+                )}
               </div>
               
               <div className="space-y-3 mb-4 max-h-96 overflow-auto">
@@ -333,9 +318,8 @@ export default function VendasPage() {
                 </div>
                 <button
                   onClick={finalizeSale}
-                  className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-bold"
-                  // Desabilita se não houver itens ou cliente selecionado
-                  disabled={saleItems.length === 0 || selectedClientId === null}
+                  className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-bold transition-colors"
+                  disabled={saleItems.length === 0}
                 >
                   Finalizar Venda
                 </button>
