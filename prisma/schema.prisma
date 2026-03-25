@@ -1,26 +1,24 @@
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  // uncomment next line if you use Prisma <5.10
-  // directUrl = env("DATABASE_URL_UNPOOLED")
-}
-
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Product {
   id               Int          @id @default(autoincrement())
   name             String
   category         String
-  pricePerKgCompra Float?
-  pricePerKgVenda  Float?
   stock            Float
-  itensCompra      ItemCompra[]
-  itensVenda       ItemVenda[]
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
+  pricePerKgCompra Float?
+  pricePerKgVenda  Float?
+  itensCompra      ItemCompra[]
+  itensVenda       ItemVenda[]
 }
 
 model Client {
@@ -30,10 +28,10 @@ model Client {
   email     String
   telefone  String
   cpf       String
-  vendas    Venda[]
-  compras   Compra[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  compras   Compra[]
+  vendas    Venda[]
 
   @@map("clientes")
 }
@@ -45,10 +43,10 @@ model Compra {
   totalItens   Int          @default(0)
   pesoTotal    Decimal      @default(0.00)
   valorTotal   Decimal      @default(0.00)
-  fornecedor   Client?      @relation(fields: [fornecedorId], references: [id])
-  itens        ItemCompra[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
+  fornecedor   Client?      @relation(fields: [fornecedorId], references: [id])
+  itens        ItemCompra[]
 
   @@map("compras")
 }
@@ -67,15 +65,14 @@ model ItemCompra {
 }
 
 model Venda {
-  id         Int      @id @default(autoincrement())
+  id         Int         @id @default(autoincrement())
   clientId   Int?
-  dataVenda  DateTime @default(now())
-  totalItens Int      @default(0)
-  pesoTotal  Decimal  @default(0.00)
-  valorTotal Decimal  @default(0.00)
-
-  client Client?     @relation(fields: [clientId], references: [id])
-  itens  ItemVenda[] // relação correta com ItemVenda
+  dataVenda  DateTime    @default(now())
+  totalItens Int         @default(0)
+  pesoTotal  Decimal     @default(0.00)
+  valorTotal Decimal     @default(0.00)
+  itens      ItemVenda[]
+  client     Client?     @relation(fields: [clientId], references: [id])
 
   @@map("vendas")
 }
@@ -87,9 +84,8 @@ model ItemVenda {
   peso      Decimal
   precoKg   Decimal
   subtotal  Decimal @default(0.00)
-
-  venda   Venda   @relation(fields: [vendaId], references: [id], onDelete: Cascade)
-  produto Product @relation(fields: [produtoId], references: [id])
+  produto   Product @relation(fields: [produtoId], references: [id])
+  venda     Venda   @relation(fields: [vendaId], references: [id], onDelete: Cascade)
 
   @@map("itens_venda")
 }
