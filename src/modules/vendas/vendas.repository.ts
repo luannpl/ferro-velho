@@ -30,4 +30,20 @@ export const vendaRepository = {
                 },
             },
         }),
+    getSalesStats: (startDate: Date, endDate: Date) =>
+        prisma.venda.findMany({
+            where: {
+                dataVenda: {
+                    gte: startDate,
+                    lte: endDate,
+                },
+            },
+            select: {
+                dataVenda: true,
+                valorTotal: true,
+            },
+            orderBy: {
+                dataVenda: "asc",
+            },
+        }),
 }

@@ -69,6 +69,7 @@ export type Dashboard = {
   totalProducts: number;
   totalInStock: number;
   salesToday: number;
+  purchasesToday: number;
 }
 
 export type CaixaData = {

@@ -5,6 +5,7 @@ import {
     DollarSign,
 } from "lucide-react";
 import { Dashboard } from "@/types";
+import { SalesChart } from "@/components/dashboard/SalesChart";
 
 
 export default function DashboardPage() {
@@ -22,44 +23,69 @@ export default function DashboardPage() {
         fetchDashboardData();
     }, []);
     if (!dashboardData) {
-        return <div>Carregando...</div>;
+        return (
+            <div className="flex h-[400px] items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+        );
     }
     return (
-        <div>
-            <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6">Dashboard</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                <div className="bg-white p-4 md:p-6 rounded-lg shadow">
+        <div className="max-w-7xl mx-auto">
+            <h2 className="text-3xl font-extrabold text-gray-900 mb-8">Dashboard Overview</h2>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-gray-600 text-sm">Total em Estoque</p>
-                            <p className="text-xl md:text-2xl font-bold">
-                               {dashboardData.totalInStock} kg
+                            <p className="text-gray-500 font-medium text-sm">Total em Estoque</p>
+                            <p className="text-3xl font-bold mt-1 text-gray-900">
+                               {dashboardData.totalInStock.toLocaleString()} <span className="text-lg font-normal text-gray-500">kg</span>
                             </p>
                         </div>
-                        <Package className="text-blue-600" size={32} />
+                        <div className="h-12 w-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                            <Package className="text-blue-600" size={24} />
+                        </div>
                     </div>
                 </div>
-                <div className="bg-white p-4 md:p-6 rounded-lg shadow">
+                
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-gray-600 text-sm">
-                                Produtos Cadastrados
-                            </p>
-                            <p className="text-xl md:text-2xl font-bold">{dashboardData.totalProducts}</p>
+                            <p className="text-gray-500 font-medium text-sm">Produtos Cadastrados</p>
+                            <p className="text-3xl font-bold mt-1 text-gray-900">{dashboardData.totalProducts}</p>
                         </div>
-                        <Package className="text-green-600" size={32} />
+                        <div className="h-12 w-12 bg-green-50 rounded-xl flex items-center justify-center">
+                            <Package className="text-green-600" size={24} />
+                        </div>
                     </div>
                 </div>
-                <div className="bg-white p-4 md:p-6 rounded-lg shadow">
+                
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-gray-600 text-sm">Total de vendas do dia</p>
-                            <p className="text-xl md:text-2xl font-bold">{dashboardData.salesToday}</p>
+                            <p className="text-gray-500 font-medium text-sm">Vendas de Hoje</p>
+                            <p className="text-3xl font-bold mt-1 text-gray-900">{dashboardData.salesToday}</p>
                         </div>
-                        <DollarSign className="text-yellow-600" size={32} />
+                        <div className="h-12 w-12 bg-yellow-50 rounded-xl flex items-center justify-center">
+                            <DollarSign className="text-yellow-600" size={24} />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-gray-500 font-medium text-sm">Compras de Hoje</p>
+                            <p className="text-3xl font-bold mt-1 text-gray-900">{dashboardData.purchasesToday}</p>
+                        </div>
+                        <div className="h-12 w-12 bg-red-50 rounded-xl flex items-center justify-center">
+                            <DollarSign className="text-red-600" size={24} />
+                        </div>
                     </div>
                 </div>
             </div>
-        </div >
+
+            <SalesChart />
+        </div>
     );
 }

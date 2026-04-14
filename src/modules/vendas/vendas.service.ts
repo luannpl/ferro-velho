@@ -69,4 +69,42 @@ export const vendasService = {
 
         return await vendaRepository.countSalesBetweenDates(startOfDay, endOfDay);
     },
+
+    getChartData: async (period: 'week' | 'month' | 'year') => {
+        const endDate = new Date();
+        const startDate = new Date();
+
+        if (period === 'week') {
+            startDate.setDate(endDate.getDate() - 7);
+        } else if (period === 'month') {
+            startDate.setMonth(endDate.getMonth() - 1);
+        } else if (period === 'year') {
+            startDate.setFullYear(endDate.getFullYear() - 1);
+        }
+
+        const sales = await vendaRepository.getSalesStats(startDate, endDate);
+
+        // Aggregate by date (YYYY-MM-DD or Month/Year for 'year')
+        const aggregated = sales.reduce((acc: any, sale) => {
+            const date = new Date(sale.dataVenda);
+            let key = "";
+            
+            if (period === 'year') {
+                key = date.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+            } else {
+                key = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+            }
+
+            if (!acc[key]) {
+                acc[key] = 0;
+            }
+            acc[key] += Number(sale.valorTotal);
+            return acc;
+        }, {});
+
+        return Object.entries(aggregated).map(([label, total]) => ({
+            label,
+            total
+        }));
+    }
 };
