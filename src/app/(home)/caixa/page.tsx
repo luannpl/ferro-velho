@@ -6,6 +6,7 @@ import { Archive, ArrowUpRight, ArrowDownRight, History, TrendingDown, TrendingU
 import InfoTransacao from "@/components/InfoTransacao";
 import InfoHistory from "@/components/InfoHistory";
 import CardInfoPeso from "@/components/CardInfoPeso";
+import { toast } from "sonner";
 
 // Adapte a interface Caixa para o frontend
 interface Caixa {
@@ -101,15 +102,15 @@ export default function Caixa() {
             });
 
             if (response.ok) {
-                alert("Caixa aberto com sucesso!");
+                toast.success("Caixa aberto com sucesso!");
                 await fetchCaixaStatus(); // Atualiza o estado
             } else {
                 const error = await response.json();
-                alert(`Erro ao abrir caixa: ${error.error}`);
+                toast.error(`Erro ao abrir caixa: ${error.error}`);
             }
         } catch (error) {
             console.error("Erro ao abrir caixa:", error);
-            alert("Erro de comunicação ao abrir caixa.");
+            toast.error("Erro de comunicação ao abrir caixa.");
         } finally {
             setIsLoading(false);
         }
@@ -136,16 +137,16 @@ export default function Caixa() {
 
                 const lucroFechamento = parseFloat(data.caixa.lucro);
 
-                alert(`Caixa fechado com sucesso! Total de Transações: ${data.caixa.numTransacoes}. Lucro final: R$ ${lucroFechamento.toFixed(2)}`);
+                toast.success(`Caixa fechado com sucesso! Total de Transações: ${data.caixa.numTransacoes}. Lucro final: R$ ${lucroFechamento.toFixed(2)}`);
                 setCaixaAberto(null); // Define como fechado
                 fetchHistorico(); // Atualiza o histórico
             } else {
                 const error = await response.json();
-                alert(`Erro ao fechar caixa: ${error.error}`);
+                toast.error(`Erro ao fechar caixa: ${error.error}`);
             }
         } catch (error) {
             console.error("Erro ao fechar caixa:", error);
-            alert("Erro de comunicação ao fechar caixa.");
+            toast.error("Erro de comunicação ao fechar caixa.");
         } finally {
             setIsLoading(false);
         }
@@ -216,196 +217,219 @@ export default function Caixa() {
     }
 
     return (
-        <main>
-            <section className="flex flex-col gap-6 p-6 bg-white border border-gray-200 rounded-xl">
-                <div className="flex items-center gap-2">
-                    <div className="rounded-xl bg-gray-100 text-gray-500 p-2"><Archive /></div>
-                    <div>
-                        <div className="text-lg font-semibold">Histórico de Caixas</div>
-                        <p className="text-muted-foreground text-sm">{historico.length} caixas anteriores</p>
+        <main className="w-full space-y-8 animate-in fade-in duration-500">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <div>
+                    <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Fluxo de Caixa</h1>
+                    <div className="flex items-center gap-2 mt-2">
+                        <span className={`relative flex h-3 w-3`}>
+                            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isOpen ? "bg-green-400" : "bg-red-400"}`}></span>
+                            <span className={`relative inline-flex rounded-full h-3 w-3 ${isOpen ? "bg-green-500" : "bg-red-500"}`}></span>
+                        </span>
+                        <span className="text-sm font-semibold text-gray-500">
+                            {isOpen ? `Sessão aberta: ${dataAberturaFormatada}` : "Caixa atualmente fechado"}
+                        </span>
                     </div>
                 </div>
-                <div className="">
-                    {currentHistorico.length > 0 ? (
-                        <>
-                            {currentHistorico.map((caixa) => (
-                                <InfoHistory
-                                    key={caixa.id}
-                                    dataAbertura={caixa.dataCaixaAbertura}
-                                    dataFechamento={caixa.dataCaixaFechamento}
-                                    numTransacoes={caixa.numTransacoes}
-                                    lucro={Number(caixa.lucro)}
-                                    receita={Number(caixa.receita)}
-                                    despesa={Number(caixa.despesa)}
-                                />
-                            ))}
+                <Button
+                    size="lg"
+                    className={`h-12 px-8 rounded-xl font-bold transition-all shadow-lg active:scale-95 ${
+                        isOpen 
+                        ? "bg-red-500 hover:bg-red-600 shadow-red-100 text-white" 
+                        : "bg-blue-600 hover:bg-blue-700 shadow-blue-100 text-white"
+                    }`}
+                    onClick={isOpen ? handleCloseCaixa : handleOpenCaixa}
+                    disabled={isLoading}
+                >
+                    {isOpen ? "Encerrar Caixa" : "Iniciar Novo Caixa"}
+                </Button>
+            </div>
 
-                            {/* Controles de Paginação */}
-                            <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                                <p className="text-sm text-muted-foreground">
-                                    Página {currentPage} de {totalPages || 1}
-                                </p>
-                                <div className="flex gap-2">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={handlePreviousPage}
-                                        disabled={currentPage === 1}
-                                    >
-                                        <ChevronLeft className="h-4 w-4" />
-                                        Anterior
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={handleNextPage}
-                                        disabled={currentPage === totalPages || totalPages === 0}
-                                    >
-                                        Próximo
-                                        <ChevronRight className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        </>
-                    ) : (
-                        <p className="text-muted-foreground text-sm p-4">Nenhum histórico disponível.</p>
-                    )}
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="p-2 w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center mb-3">
+                        <TrendingUp className="text-green-600" size={20} />
+                    </div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Receita (Vendas)</p>
+                    <p className="text-2xl font-black text-gray-900 mt-1">R$ {receitaAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
-            </section>
 
-            <section className="mt-6">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-                            Controle de Caixa
-                        </h3>
-                        <p className="text-muted-foreground text-sm">Gerencie suas transações e acompanhe o fluxo de caixa</p>
+                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="p-2 w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center mb-3">
+                        <TrendingDown className="text-red-600" size={20} />
                     </div>
-                    <div>
-                        <Button
-                            className={`${isOpen ? "bg-red-600 hover:bg-red-700" : "bg-green-500 hover:bg-green-600"}`}
-                            onClick={isOpen ? handleCloseCaixa : handleOpenCaixa}
-                            disabled={isLoading}
-                        >
-                            {isOpen ? "Fechar Caixa" : "Abrir Caixa"}
-                        </Button>
-                    </div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Despesas (Compras)</p>
+                    <p className="text-2xl font-black text-gray-900 mt-1">R$ {despesaAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
-                <div className="p-2">
-                    <p className={`text-xs ${isOpen ? "text-green-500" : "text-muted-foreground"}`}>
-                        <span className={`w-2 h-2 rounded-full mr-1 inline-block ${isOpen ? "bg-green-500" : "bg-gray-500"}`}></span>
-                        {isOpen ? `Caixa Aberto desde: ${dataAberturaFormatada}` : "Caixa Fechado"}
+
+                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="p-2 w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center mb-3">
+                        <Wallet className="text-blue-600" size={20} />
+                    </div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Lucro Líquido</p>
+                    <p className={`text-2xl font-black mt-1 ${lucroAtual >= 0 ? "text-green-600" : "text-red-600"}`}>
+                        R$ {lucroAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </p>
                 </div>
 
-                <div className="flex gap-4">
-                    <div className="flex-1">
-                        <CardInfo
-                            title="Receita Total"
-                            valor={receitaAtual} // Total de Vendas
-                            icon={<TrendingUp />}
-                            bgColor="bg-green-300/30"
-                            borderColor="border-green-300"
-                            textColor="text-green-600"
-                        />
+                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="p-2 w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center mb-3">
+                        <Archive className="text-amber-600" size={20} />
                     </div>
-                    <div className="flex-1">
-                        <CardInfo
-                            title="Despesas"
-                            valor={despesaAtual} // Total de Compras
-                            icon={<TrendingDown />}
-                            bgColor="bg-red-300/30"
-                            borderColor="border-red-300"
-                            textColor="text-red-600"
-                        />
-                    </div>
-                    <div className="flex-1">
-                        <CardInfo
-                            title="Lucro"
-                            valor={lucroAtual} // Lucro Líquido (Receita - Despesa)
-                            icon={<Wallet />}
-                            bgColor="bg-green-300/30"
-                            borderColor="border-green-300"
-                            textColor="text-green-600"
-                        />
-                    </div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Peso Comprado</p>
+                    <p className="text-2xl font-black text-gray-900 mt-1">{pesoCompradoAtual.toLocaleString('pt-BR')} <span className="text-sm font-normal text-gray-400">kg</span></p>
                 </div>
-                <div className="flex gap-4 mt-2">
-                    <div className="flex-1">
-                        <CardInfoPeso title="Peso Total Comprado" valor={pesoCompradoAtual} bgColor="bg-green-300/30" borderColor="border-green-300" textColor="text-green-600" />
-                    </div>
-                    <div className="flex-1">
-                        <CardInfoPeso title="Peso Total Vendido" valor={pesoVendidoAtual} bgColor="bg-blue-300/30" borderColor="border-blue-300" textColor="text-blue-600" />
-                    </div>
-                </div>
-            </section>
 
-            {/* Seção Histórico de Transações */}
-            <section className="mt-3">
-                <div className="flex flex-col p-6 bg-white border border-gray-200 rounded-xl">
-                    <div className="flex items-center gap-2">
-                        <div className="p-3 bg-green-100 rounded-xl text-green-600"><History /></div>
-                        <div>
-                            <div className="text-lg font-semibold">Histórico de Transações</div>
-                            <p className="text-muted-foreground text-sm">{numTransacoes} transações registradas</p>
+                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="p-2 w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center mb-3">
+                        <History className="text-indigo-600" size={20} />
+                    </div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Peso Vendido</p>
+                    <p className="text-2xl font-black text-gray-900 mt-1">{pesoVendidoAtual.toLocaleString('pt-BR')} <span className="text-sm font-normal text-gray-400">kg</span></p>
+                </div>
+            </div>
+
+            {/* Main Content: Two Columns */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Left Column: Active Transactions */}
+                <div className="lg:col-span-2 space-y-6">
+                    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                        <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 bg-white rounded-xl shadow-sm border border-gray-100">
+                                    <History className="text-blue-600" size={20} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-gray-900">Transações Atuais</h3>
+                                    <p className="text-xs text-gray-500">{numTransacoes} operações registradas no caixa aberto</p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    {/* Aqui você faria um .map das transações que ocorreram no período do caixa aberto */}
-                    {/* Lista de Transações Dinâmica */}
-                    <div className="mt-4 flex flex-col gap-3">
-                        {currentTransacoes.length > 0 ? (
-                            <>
-                                {currentTransacoes.map((transacao) => {
-                                    const isVenda = transacao.tipo === 'Venda';
-                                    return (
-                                        <InfoTransacao
-                                            key={`${transacao.tipo}-${transacao.id}`}
-                                            title={transacao.descricao}
-                                            valor={transacao.valor}
-                                            tipo={transacao.tipo}
-                                            data={new Date(transacao.data).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}
-                                            icon={isVenda ? <ArrowUpRight /> : <ArrowDownRight />}
-                                            bgColorIcon={isVenda ? "bg-green-100" : "bg-red-100"}
-                                            textColorIcon={isVenda ? "text-green-600" : "text-red-600"}
-                                            textColorValue={isVenda ? "text-green-600" : "text-red-600"}
-                                            isNegative={!isVenda}
-                                        />
-                                    );
-                                })}
 
-                                {/* Controles de Paginação de Transações */}
-                                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                                    <p className="text-sm text-muted-foreground">
-                                        Página {currentTransacaoPage} de {totalTransacaoPages || 1}
-                                    </p>
-                                    <div className="flex gap-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={handlePreviousTransacaoPage}
-                                            disabled={currentTransacaoPage === 1}
-                                        >
-                                            <ChevronLeft className="h-4 w-4" />
-                                            Anterior
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={handleNextTransacaoPage}
-                                            disabled={currentTransacaoPage === totalTransacaoPages || totalTransacaoPages === 0}
-                                        >
-                                            Próximo
-                                            <ChevronRight className="h-4 w-4" />
-                                        </Button>
+                        <div className="p-6">
+                            {currentTransacoes.length > 0 ? (
+                                <div className="space-y-3">
+                                    {currentTransacoes.map((transacao) => {
+                                        const isVenda = transacao.tipo === 'Venda';
+                                        return (
+                                            <InfoTransacao
+                                                key={`${transacao.tipo}-${transacao.id}`}
+                                                title={transacao.descricao}
+                                                valor={transacao.valor}
+                                                tipo={transacao.tipo}
+                                                data={new Date(transacao.data).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}
+                                                icon={isVenda ? <ArrowUpRight /> : <ArrowDownRight />}
+                                                bgColorIcon={isVenda ? "bg-green-50" : "bg-red-50"}
+                                                textColorIcon={isVenda ? "text-green-600" : "text-red-600"}
+                                                textColorValue={isVenda ? "text-green-600" : "text-red-600"}
+                                                isNegative={!isVenda}
+                                            />
+                                        );
+                                    })}
+
+                                    {/* Pagination for Transactions */}
+                                    <div className="flex items-center justify-between mt-8 pt-4 border-t border-gray-50">
+                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                            Página {currentTransacaoPage} de {totalTransacaoPages || 1}
+                                        </p>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="rounded-lg h-8 w-8 p-0"
+                                                onClick={handlePreviousTransacaoPage}
+                                                disabled={currentTransacaoPage === 1}
+                                            >
+                                                <ChevronLeft size={18} />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="rounded-lg h-8 w-8 p-0"
+                                                onClick={handleNextTransacaoPage}
+                                                disabled={currentTransacaoPage === totalTransacaoPages || totalTransacaoPages === 0}
+                                            >
+                                                <ChevronRight size={18} />
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
-                            </>
-                        ) : (
-                            <p className="text-muted-foreground text-sm p-4 text-center">Nenhuma transação registrada neste período.</p>
-                        )}
+                            ) : (
+                                <div className="py-12 flex flex-col items-center justify-center text-center opacity-40">
+                                    <Archive size={48} className="mb-4 text-gray-400" />
+                                    <p className="font-medium">Nenhuma transação no período</p>
+                                    <p className="text-sm">As vendas e compras aparecerão aqui após serem registradas.</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </section>
+
+                {/* Right Column: Historical Data */}
+                <div className="lg:col-span-1 space-y-6">
+                    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden sticky top-6">
+                        <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 bg-white rounded-xl shadow-sm border border-gray-100">
+                                    <Archive className="text-amber-600" size={20} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-gray-900">Caixas Anteriores</h3>
+                                    <p className="text-xs text-gray-500">{historico.length} fechamentos</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-6">
+                            {currentHistorico.length > 0 ? (
+                                <div className="space-y-4">
+                                    {currentHistorico.map((caixa) => (
+                                        <InfoHistory
+                                            key={caixa.id}
+                                            dataAbertura={caixa.dataCaixaAbertura}
+                                            dataFechamento={caixa.dataCaixaFechamento}
+                                            numTransacoes={caixa.numTransacoes}
+                                            lucro={Number(caixa.lucro)}
+                                            receita={Number(caixa.receita)}
+                                            despesa={Number(caixa.despesa)}
+                                        />
+                                    ))}
+
+                                    {/* Pagination for History */}
+                                    <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-50">
+                                        <div className="flex gap-2 w-full justify-between">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="rounded-xl flex-1 text-xs"
+                                                onClick={handlePreviousPage}
+                                                disabled={currentPage === 1}
+                                            >
+                                                <ChevronLeft size={16} className="mr-1" />
+                                                Anterior
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="rounded-xl flex-1 text-xs"
+                                                onClick={handleNextPage}
+                                                disabled={currentPage === totalPages || totalPages === 0}
+                                            >
+                                                Próximo
+                                                <ChevronRight size={16} className="ml-1" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <p className="text-sm text-center text-gray-400 py-8">Sem histórico disponível.</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
-    )
+    );
 }

@@ -1,9 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Plus, Trash2, Package } from "lucide-react";
+import { Plus, Trash2, Package, TrendingDown } from "lucide-react";
 import { Input, Select } from "antd";
 
 import { CompraDataResponse, ClientData } from "@/types";
+import { toast } from "sonner";
 
 interface PurchaseItem {
   productName: string;
@@ -76,7 +77,7 @@ export default function ComprasPage() {
       !purchaseForm.weight ||
       !purchaseForm.pricePerKgCompra
     ) {
-      alert("Preencha todos os campos obrigatórios!");
+      toast.error("Preencha todos os campos obrigatórios!");
       return;
     }
 
@@ -84,7 +85,7 @@ export default function ComprasPage() {
     const pricePerKgCompra = parseFloat(purchaseForm.pricePerKgCompra);
 
     if (isNaN(weight) || isNaN(pricePerKgCompra)) {
-      alert("Peso ou preço inválido");
+      toast.error("Peso ou preço inválido");
       return;
     }
 
@@ -118,10 +119,8 @@ export default function ComprasPage() {
     // -------------------------------------------------------------------
     // --- 1. VALIDAÇÕES E ENCONTRAR FORNECEDOR ---
     // -------------------------------------------------------------------
-    const customAlert = (message: string) => console.error("Aviso:", message);
-
     if (purchaseItems.length === 0) {
-      customAlert("Adicione itens à compra!");
+      toast.error("Adicione itens à compra!");
       return;
     }
 
@@ -475,284 +474,253 @@ export default function ComprasPage() {
     }
   };
   return (
-    <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2">
-        <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6">Nova Compra</h2>
-
-        <div className="bg-white rounded-lg shadow p-4 md:p-6 mb-6">
-          <h3 className="text-xl font-bold mb-4">Adicionar Item</h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Produto (Select do AntD) */}
-            <div className="md:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Produto *
-              </label>
-
-              <Select
-                showSearch
-                placeholder="Selecione o produto"
-                style={{ width: "100%" }}
-                value={purchaseForm.productName || undefined}
-                onChange={(value: string) => {
-                  const selected = products.find((p) => p.name === value);
-                  setPurchaseForm((prev) => ({
-                    ...prev,
-                    productName: value,
-                    category: selected?.category || "",
-                    pricePerKgCompra: selected
-                      ? String(selected.pricePerKgCompra)
-                      : prev.pricePerKgCompra,
-                  }));
-                }}
-                filterOption={(input: string, option?: OptionType) =>
-                  (option?.label ?? "")
-                    .toString()
-                    .toLowerCase()
-                    .includes(input.toLowerCase())
-                }
-                options={products.map((product) => ({
-                  value: product.name,
-                  label: `${product.name}`,
-                }))}
-              />
-            </div>
-
-            {/* Categoria */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Categoria
-              </label>
-              <Input
-                value={purchaseForm.category}
-                readOnly
-                placeholder="Categoria"
-                className="!bg-gray-100"
-              />
-            </div>
-
-            {/* Peso */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Peso (kg) *
-              </label>
-              <Input
-                type="number"
-                value={purchaseForm.weight}
-                onChange={(e) =>
-                  setPurchaseForm({ ...purchaseForm, weight: e.target.value })
-                }
-                placeholder="0.00"
-                min={0}
-                step="0.1"
-              />
-            </div>
-
-            {/* Preço por KG */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Preço por kg *
-              </label>
-              <Input
-                type="number"
-                value={purchaseForm.pricePerKgCompra}
-                onChange={(e) =>
-                  setPurchaseForm({
-                    ...purchaseForm,
-                    pricePerKgCompra: e.target.value,
-                  })
-                }
-                placeholder="0.00"
-                min={0}
-                step="0.01"
-              />
-            </div>
-          </div>
-
-          <button
-            onClick={addPurchaseItem}
-            className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2 cursor-pointer w-full sm:w-auto"
-          >
-            <Plus size={20} />
-            <span>Adicionar à Compra</span>
-          </button>
+    <div className="w-full space-y-8 animate-in fade-in duration-500">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <div>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Entrada de Materiais</h1>
+          <p className="text-sm font-medium text-gray-500 mt-1">Registre a compra de sucatas e materiais recicláveis</p>
         </div>
-
-        {/* Tabela de Itens */}
-        {purchaseItems.length > 0 && (
-          <div className="bg-white rounded-lg shadow mb-6 lg:mb-0">
-            <div className="p-4 border-b">
-              <h3 className="text-lg font-bold">Itens da Compra</h3>
-            </div>
-            
-            {/* MOBILE: Cards */}
-            <div className="md:hidden p-4 space-y-4">
-              {purchaseItems.map((item, index) => (
-                <div key={index} className="border rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h4 className="font-bold text-gray-900">{item.productName}</h4>
-                      <p className="text-sm text-gray-600">{item.category}</p>
-                    </div>
-                    <button
-                      onClick={() => removePurchaseItem(index)}
-                      className="text-red-600 hover:text-red-800 p-1"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <p className="text-xs text-gray-600">Peso</p>
-                      <p className="font-semibold">{item.weight} kg</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600">Preço/kg</p>
-                      <p className="font-semibold">R$ {item.pricePerKgCompra.toFixed(2)}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-3 pt-3 border-t">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Subtotal</span>
-                      <span className="text-lg font-bold text-blue-600">R$ {item.subtotal.toFixed(2)}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* DESKTOP: Tabela */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Produto
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Categoria
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Peso
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Preço/kg
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Subtotal
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Ação
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {purchaseItems.map((item, index) => (
-                    <tr key={index}>
-                      <td className="px-4 py-3">{item.productName}</td>
-                      <td className="px-4 py-3">{item.category}</td>
-                      <td className="px-4 py-3">{item.weight} kg</td>
-                      <td className="px-4 py-3">
-                        R$ {item.pricePerKgCompra.toFixed(2)}
-                      </td>
-                      <td className="px-4 py-3 font-bold text-blue-600">
-                        R$ {item.subtotal.toFixed(2)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={() => removePurchaseItem(index)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+        <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-100 items-center px-4 h-12">
+          <TrendingDown className="text-red-500 mr-2" size={20} />
+          <span className="text-sm font-bold text-gray-700">Fluxo de Entrada</span>
+        </div>
       </div>
 
-      {/* Resumo da Compra (fornecedor) */}
-      <div className="lg:col-span-1">
-        <div className="bg-white rounded-lg shadow p-4 md:p-6 lg:sticky lg:top-6">
-          <h3 className="text-xl font-bold mb-4">Resumo da Compra</h3>
-
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Fornecedor (Opcional)
-            </label>
-            <Select
-              showSearch
-              placeholder="Selecione o fornecedor ou deixe vazio para compra avulsa"
-              style={{ width: "100%" }}
-              value={selectedSupplier || undefined}
-              onChange={(value) => setSelectedSupplier(value)}
-              allowClear
-              filterOption={(input, option) =>
-                (option?.label ?? "")
-                  .toLowerCase()
-                  .includes(input.toLowerCase())
-              }
-              options={fornecedores.map((f) => ({
-                value: f.name,
-                label: f.name,
-              }))}
-            />
-            {!selectedSupplier && (
-              <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
-                <span className="font-semibold">⚠️ Compra Avulsa:</span> Nenhum fornecedor associado
-              </p>
-            )}
-          </div>
-
-          {purchaseItems.length === 0 ? (
-            <div className="text-center py-8">
-              <Package className="mx-auto text-gray-400 mb-3" size={48} />
-              <p className="text-gray-500">Nenhum item adicionado</p>
+      <div className="flex flex-col lg:grid lg:grid-cols-3 gap-8">
+        {/* Formulário e Tabela Section */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-gray-50 bg-gray-50/50">
+               <h3 className="font-bold text-gray-900">Adicionar Novo Item</h3>
             </div>
-          ) : (
-            <>
-              <div className="space-y-3 mb-6">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Total de itens:</span>
-                  <span className="font-semibold">{purchaseItems.length}</span>
+            
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Produto Selection */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest">
+                    Produto / Material *
+                  </label>
+                  <Select
+                    showSearch
+                    placeholder="Selecione o produto"
+                    className="w-full h-11"
+                    variant="borderless"
+                    style={{ background: '#f9fafb', borderRadius: '0.75rem', border: '1px solid #f3f4f6' }}
+                    value={purchaseForm.productName || undefined}
+                    onChange={(value: string) => {
+                      const selected = products.find((p) => p.name === value);
+                      setPurchaseForm((prev) => ({
+                        ...prev,
+                        productName: value,
+                        category: selected?.category || "",
+                        pricePerKgCompra: selected
+                          ? String(selected.pricePerKgCompra)
+                          : prev.pricePerKgCompra,
+                      }));
+                    }}
+                    filterOption={(input: string, option?: OptionType) =>
+                      (option?.label ?? "")
+                        .toString()
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    options={products.map((product) => ({
+                      value: product.name,
+                      label: product.name,
+                    }))}
+                  />
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Peso total:</span>
-                  <span className="font-semibold">
-                    {purchaseItems
-                      .reduce((sum, i) => sum + i.weight, 0)
-                      .toFixed(2)}{" "}
-                    kg
-                  </span>
+
+                {/* Categoria (Read Only) */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest">
+                    Categoria
+                  </label>
+                  <Input
+                    value={purchaseForm.category}
+                    readOnly
+                    placeholder="Auto-preenchido"
+                    className="h-11 rounded-xl bg-gray-50 border-gray-100 text-gray-500 font-medium"
+                  />
                 </div>
-                <div className="border-t pt-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold">Total:</span>
-                    <span className="text-2xl font-bold text-green-600">
-                      R$ {getTotalPurchase().toFixed(2)}
-                    </span>
-                  </div>
+
+                {/* Peso */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest">
+                    Peso (kg) *
+                  </label>
+                  <Input
+                    type="number"
+                    value={purchaseForm.weight}
+                    onChange={(e) =>
+                      setPurchaseForm({ ...purchaseForm, weight: e.target.value })
+                    }
+                    placeholder="0.00"
+                    className="h-11 rounded-xl bg-white border-gray-200 focus:border-blue-500 font-bold"
+                  />
+                </div>
+
+                {/* Preço por KG */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest">
+                    Preço de Compra (R$/kg) *
+                  </label>
+                  <Input
+                    type="number"
+                    value={purchaseForm.pricePerKgCompra}
+                    onChange={(e) =>
+                      setPurchaseForm({
+                        ...purchaseForm,
+                        pricePerKgCompra: e.target.value,
+                      })
+                    }
+                    placeholder="0.00"
+                    className="h-11 rounded-xl bg-white border-gray-200 focus:border-blue-500 font-bold"
+                  />
                 </div>
               </div>
 
               <button
-                onClick={finalizePurchase}
-                className="w-full py-3 rounded-lg font-bold bg-green-600 text-white hover:bg-green-700 transition-colors"
+                onClick={addPurchaseItem}
+                className="mt-8 h-12 bg-blue-600 text-white px-8 rounded-xl font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-50 active:scale-95 w-full md:w-auto"
               >
-                Finalizar Compra
+                <Plus size={20} />
+                <span>Incluir no Lote</span>
               </button>
+            </div>
+          </div>
 
-              <p className="text-xs text-gray-500 text-center mt-3">
-                O estoque será atualizado automaticamente
-              </p>
-            </>
+          {/* Tabela de Itens */}
+          {purchaseItems.length > 0 && (
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+              <div className="p-6 border-b border-gray-50 bg-gray-50/50 flex items-center gap-2">
+                <Package className="text-blue-500" size={20} />
+                <h3 className="font-bold text-gray-900">Materiais Incluídos</h3>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50/30">
+                      <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Material</th>
+                      <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Peso</th>
+                      <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Preço/kg</th>
+                      <th className="px-6 py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Subtotal</th>
+                      <th className="px-6 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Ação</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {purchaseItems.map((item, index) => (
+                      <tr key={index} className="hover:bg-gray-50/50 transition-colors group">
+                        <td className="px-6 py-4">
+                           <p className="font-bold text-gray-900">{item.productName}</p>
+                           <p className="text-[10px] text-gray-400">{item.category}</p>
+                        </td>
+                        <td className="px-6 py-4 font-medium text-gray-700">{item.weight.toLocaleString('pt-BR')} kg</td>
+                        <td className="px-6 py-4 font-medium text-gray-700">R$ {item.pricePerKgCompra.toFixed(2)}</td>
+                        <td className="px-6 py-4 text-right font-black text-blue-600">R$ {item.subtotal.toFixed(2)}</td>
+                        <td className="px-6 py-4 text-center">
+                          <button
+                            onClick={() => removePurchaseItem(index)}
+                            className="h-8 w-8 inline-flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           )}
+        </div>
+
+        {/* Resumo da Compra Section */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden lg:sticky lg:top-8 animate-in slide-in-from-right-4 duration-300">
+            <div className="p-6 border-b border-gray-50 bg-gray-50/50">
+               <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                 Resumo do Lote
+               </h3>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Fornecedor Selection */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest">
+                  Fornecedor (Opcional)
+                </label>
+                <Select
+                  showSearch
+                  placeholder="Selecione o fornecedor"
+                  className="w-full h-11"
+                  variant="borderless"
+                  style={{ background: '#f9fafb', borderRadius: '0.75rem', border: '1px solid #f3f4f6' }}
+                  value={selectedSupplier || undefined}
+                  onChange={(value) => setSelectedSupplier(value)}
+                  allowClear
+                  filterOption={(input, option) =>
+                    (option?.label ?? "")
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
+                  }
+                  options={fornecedores.map((f) => ({
+                    value: f.name,
+                    label: f.name,
+                  }))}
+                />
+                {!selectedSupplier && (
+                  <div className="bg-amber-50 text-amber-700 p-3 rounded-xl border border-amber-100">
+                    <p className="text-[10px] font-black uppercase tracking-widest mb-1 flex items-center gap-1">
+                      ⚠️ Compra Avulsa
+                    </p>
+                    <p className="text-[11px] leading-relaxed">Nenhum fornecedor selecionado. A transação será registrada como balcão.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Dynamic Totals */}
+              <div className="space-y-4 pt-4">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="font-bold text-gray-400 uppercase tracking-widest">Total Itens</span>
+                  <span className="font-black text-gray-900">{purchaseItems.length}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="font-bold text-gray-400 uppercase tracking-widest">Peso Total</span>
+                  <span className="font-black text-gray-900">
+                    {purchaseItems.reduce((sum, i) => sum + i.weight, 0).toLocaleString('pt-BR')} kg
+                  </span>
+                </div>
+                
+                <div className="pt-6 border-t border-gray-100 space-y-4">
+                  <div className="flex flex-col items-center justify-center p-6 bg-green-50/50 rounded-2xl border border-green-100/50">
+                    <span className="text-xs font-bold text-green-600 uppercase tracking-widest mb-1">Valor Total à Pagar</span>
+                    <span className="text-4xl font-black text-green-700">
+                      R$ {getTotalPurchase().toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={finalizePurchase}
+                    disabled={purchaseItems.length === 0}
+                    className={`w-full h-14 rounded-2xl font-black text-lg transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2 ${
+                      purchaseItems.length > 0
+                      ? "bg-green-600 text-white hover:bg-green-700 shadow-green-100"
+                      : "bg-gray-100 text-gray-300 cursor-not-allowed"
+                    }`}
+                  >
+                    Finalizar e Imprimir
+                  </button>
+                  <p className="text-[10px] text-gray-400 text-center font-bold">
+                    O ESTOQUE SERÁ INCREMENTADO AUTOMATICAMENTE
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { toast } from "sonner";
 
 
 interface Product {
@@ -92,10 +93,11 @@ export default function ProdutosPage() {
     });
 
     if (response.ok) {
+        toast.success("Produto deletado com sucesso!");
       fetchProducts();
     } else {
       const error = await response.json();
-      alert("Erro ao deletar: " + error.message);
+      toast.error("Erro ao deletar: " + error.message);
     }
 
     setDeleteProductId(null);
@@ -111,237 +113,177 @@ export default function ProdutosPage() {
     });
 
     if (response.ok) {
+        toast.success("Produto atualizado com sucesso!");
       fetchProducts();
       setEditProduct(null);
     } else {
       const error = await response.json();
-      alert("Erro ao atualizar: " + error.message);
+      toast.error("Erro ao atualizar: " + error.message);
     }
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold">Produtos</h2>
+    <div className="w-full space-y-8 animate-in fade-in duration-500">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <div>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Gestão de Estoque</h1>
+          <p className="text-sm font-medium text-gray-500 mt-1">Controle de materiais, categorias e precificação</p>
+        </div>
         <button
           onClick={() => setShowProductForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700"
+          className="h-12 px-6 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 shadow-lg shadow-blue-50 active:scale-95 transition-all"
         >
           <Plus size={20} />
-          <span>Novo Produto</span>
+          <span>Cadastrar Novo</span>
         </button>
       </div>
 
       {showProductForm && (
-        <div className="bg-white p-4 md:p-6 rounded-lg shadow mb-6">
-          <h3 className="text-xl font-bold mb-4">Cadastrar Produto</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Nome do produto */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
-                Nome do produto
-              </label>
-              <input
-                type="text"
-                placeholder="Ex: Geladeira"
-                className="border rounded px-3 py-2"
-                value={newProduct.name}
-                onChange={(e) =>
-                  setNewProduct({ ...newProduct, name: e.target.value })
-                }
-              />
-            </div>
-
-            {/* Categoria */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
-                Categoria
-              </label>
-              <input
-                type="text"
-                placeholder="Ex: Metal"
-                className="border rounded px-3 py-2"
-                value={newProduct.category}
-                onChange={(e) =>
-                  setNewProduct({ ...newProduct, category: e.target.value })
-                }
-              />
-            </div>
-
-            {/* Preço por kg compra */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
-                Preço por kg compra (R$)
-              </label>
-              <input
-                type="number"
-                placeholder="Ex: 9.90"
-                className="border rounded px-3 py-2"
-                value={newProduct.pricePerKgCompra}
-                onChange={(e) =>
-                  setNewProduct({
-                    ...newProduct,
-                    pricePerKgCompra: e.target.value,
-                  })
-                }
-              />
-            </div>
-
-            {/* Preço por kg venda */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
-                Preço por kg venda (R$)
-              </label>
-              <input
-                type="number"
-                placeholder="Ex: 9.90"
-                className="border rounded px-3 py-2"
-                value={newProduct.pricePerKgVenda}
-                onChange={(e) =>
-                  setNewProduct({
-                    ...newProduct,
-                    pricePerKgVenda: e.target.value,
-                  })
-                }
-              />
-            </div>
-
-            {/* Estoque */}
-            <div className="flex flex-col md:col-span-2">
-              <label className="text-sm font-medium text-gray-700 mb-1">
-                Estoque (kg)
-              </label>
-              <input
-                type="number"
-                placeholder="Ex: 50"
-                className="border rounded px-3 py-2"
-                value={newProduct.stock}
-                onChange={(e) =>
-                  setNewProduct({
-                    ...newProduct,
-                    stock: e.target.value,
-                  })
-                }
-              />
-            </div>
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden animate-in slide-in-from-top-4 duration-300">
+          <div className="p-6 border-b border-gray-50 bg-gray-50/50">
+             <h3 className="text-xl font-black text-gray-900">Novo Material</h3>
           </div>
+          
+          <div className="p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Nome */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest">Nome do Material</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Alumínio Grosso"
+                  className="w-full h-12 bg-gray-50 border border-gray-100 rounded-xl px-4 text-sm font-medium focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all"
+                  value={newProduct.name}
+                  onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                />
+              </div>
 
-          {/* Botões */}
-          <div className="flex flex-col sm:flex-row w-full justify-end gap-3 mt-4">
-            <button
-              onClick={() => setShowProductForm(false)}
-              className="bg-red-400 text-white px-4 py-2 rounded hover:bg-red-500 cursor-pointer order-2 sm:order-1"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleCreateProduct}
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer order-1 sm:order-2"
-            >
-              Cadastrar
-            </button>
+              {/* Categoria */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest">Categoria</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Metais"
+                  className="w-full h-12 bg-gray-50 border border-gray-100 rounded-xl px-4 text-sm font-medium focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all"
+                  value={newProduct.category}
+                  onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                />
+              </div>
+
+              {/* Estoque Inicial */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest">Estoque Inicial (kg)</label>
+                <input
+                  type="number"
+                  placeholder="0.00"
+                  className="w-full h-12 bg-gray-50 border border-gray-100 rounded-xl px-4 text-sm font-bold focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all"
+                  value={newProduct.stock}
+                  onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
+                />
+              </div>
+
+              {/* Preço Compra */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-red-500 uppercase tracking-widest">Preço Compra (R$/kg)</label>
+                <input
+                  type="number"
+                  placeholder="0.00"
+                  className="w-full h-12 bg-red-50/30 border border-red-100 rounded-xl px-4 text-sm font-bold focus:ring-4 focus:ring-red-100 focus:border-red-500 outline-none transition-all"
+                  value={newProduct.pricePerKgCompra}
+                  onChange={(e) => setNewProduct({ ...newProduct, pricePerKgCompra: e.target.value })}
+                />
+              </div>
+
+              {/* Preço Venda */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-green-500 uppercase tracking-widest">Preço Venda (R$/kg)</label>
+                <input
+                  type="number"
+                  placeholder="0.00"
+                  className="w-full h-12 bg-green-50/30 border border-green-100 rounded-xl px-4 text-sm font-bold focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all"
+                  value={newProduct.pricePerKgVenda}
+                  onChange={(e) => setNewProduct({ ...newProduct, pricePerKgVenda: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
+              <button
+                onClick={() => setShowProductForm(false)}
+                className="h-12 px-6 rounded-xl font-bold bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all"
+              >
+                Descartar
+              </button>
+              <button
+                onClick={handleCreateProduct}
+                className="h-12 px-8 rounded-xl font-black bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg shadow-blue-50"
+              >
+                Salvar Material
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* MOBILE: Cards */}
-      <div className="md:hidden space-y-4">
-        {products.map((product) => (
-          <div key={product.id} className="bg-white p-4 rounded-lg shadow border border-gray-100">
-            <div className="flex justify-between items-start mb-3">
-              <div>
-                <h4 className="font-bold text-lg text-gray-900">{product.name}</h4>
-                <p className="text-sm text-gray-600">{product.category}</p>
-              </div>
-              <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
-                {product.stock} kg
-              </span>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="bg-blue-50 p-3 rounded">
-                <p className="text-xs text-gray-600 mb-1">Compra/kg</p>
-                <p className="font-bold text-blue-600">R$ {(product.pricePerKgCompra ?? 0).toFixed(2)}</p>
-              </div>
-              <div className="bg-green-50 p-3 rounded">
-                <p className="text-xs text-gray-600 mb-1">Venda/kg</p>
-                <p className="font-bold text-green-600">R$ {(product.pricePerKgVenda ?? 0).toFixed(2)}</p>
-              </div>
-            </div>
-            
-            <div className="flex gap-2 pt-3 border-t border-gray-200">
-              <button
-                onClick={() => setEditProduct(product)}
-                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
-                <Edit2 size={16} />
-                <span>Editar</span>
-              </button>
-              <button
-                onClick={() => setDeleteProductId(product.id)}
-                className="flex-1 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors flex items-center justify-center gap-2">
-                <Trash2 size={16} />
-                <span>Excluir</span>
-              </button>
-            </div>
+      {/* Tabela de Produtos */}
+      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
+          <h3 className="font-bold text-gray-900">Inventário de Materiais</h3>
+          <div className="px-3 py-1 bg-white border border-gray-100 rounded-lg text-xs font-black text-gray-500">
+            {products.length} ITENS CADASTRADOS
           </div>
-        ))}
-      </div>
+        </div>
 
-      {/* DESKTOP: Tabela */}
-      <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Produto
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Categoria
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Estoque (kg)
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Preço/kg compra
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Preço/kg venda
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Ações
-                </th>
+            <thead>
+              <tr className="bg-gray-50/30">
+                <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Descrição</th>
+                <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Categoria</th>
+                <th className="px-6 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Estoque Atual</th>
+                <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Preço Compra</th>
+                <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Preço Venda</th>
+                <th className="px-6 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-50">
               {products.map((product) => (
-                <tr key={product.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">{product.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {product.category}
+                <tr key={product.id} className="hover:bg-gray-50/50 transition-colors group">
+                  <td className="px-6 py-4">
+                    <p className="font-bold text-gray-900">{product.name}</p>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {product.stock} kg
+                  <td className="px-6 py-4">
+                    <span className="px-2.5 py-1 bg-gray-100 text-gray-500 rounded-lg text-[10px] font-black uppercase tracking-wider">
+                      {product.category}
+                    </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 text-center">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-black ${product.stock > 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+                      {product.stock.toLocaleString('pt-BR')} kg
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 font-bold text-red-600">
                     R$ {(product.pricePerKgCompra ?? 0).toFixed(2)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 font-bold text-green-600">
                     R$ {(product.pricePerKgVenda ?? 0).toFixed(2)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => setEditProduct(product)}
-                      className="text-blue-600 hover:text-blue-800 mr-3"
-                    >
-                      <Edit2 size={18} />
-                    </button>
-                    <button
-                      onClick={() => setDeleteProductId(product.id)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                  <td className="px-6 py-4 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => setEditProduct(product)}
+                        className="h-9 w-9 inline-flex items-center justify-center text-blue-500 hover:bg-blue-50 rounded-xl transition-all"
+                      >
+                        <Edit2 size={18} />
+                      </button>
+                      <button
+                        onClick={() => setDeleteProductId(product.id)}
+                        className="h-9 w-9 inline-flex items-center justify-center text-red-400 hover:bg-red-50 rounded-xl transition-all"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -349,65 +291,115 @@ export default function ProdutosPage() {
           </table>
         </div>
       </div>
+
       {/* DIALOG DE EDIÇÃO */}
       <Dialog open={!!editProduct} onOpenChange={(open) => !open && setEditProduct(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Produto</DialogTitle>
-            <DialogDescription>Altere as informações e clique em “Salvar”.</DialogDescription>
-          </DialogHeader>
-
-          {editProduct && (
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              <div>Nome: </div>
-              <input type="text" placeholder="Nome" className="border rounded px-3 py-2"
-                value={editProduct.name} onChange={(e) => setEditProduct({ ...editProduct, name: e.target.value })} />
-              
-              <div>Categoria: </div>
-              <input type="text" placeholder="Categoria" className="border rounded px-3 py-2"
-                value={editProduct.category} onChange={(e) => setEditProduct({ ...editProduct, category: e.target.value })} />
-              
-              <div>Preço por kg compra: </div>
-              <input type="number" placeholder="Preço por kg compra" className="border rounded px-3 py-2"
-                value={editProduct.pricePerKgCompra} onChange={(e) => setEditProduct({ ...editProduct, pricePerKgCompra: Number(e.target.value) })} />
-              
-              <div>Preço por kg venda: </div>
-              <input type="number" placeholder="Preço por kg venda" className="border rounded px-3 py-2"
-                value={editProduct.pricePerKgVenda} onChange={(e) => setEditProduct({ ...editProduct, pricePerKgVenda: Number(e.target.value) })} />
-              
-              <div>Quantidade no Estoque: </div>
-              <input type="number" placeholder="Quantidade no Estoque" className="border rounded px-3 py-2"
-                value={editProduct.stock} onChange={(e) => setEditProduct({ ...editProduct, stock: Number(e.target.value) })} />
+        <DialogContent className="sm:max-w-xl p-0 overflow-hidden rounded-3xl border-none">
+          <div className="p-8 space-y-8 animate-in zoom-in-95 duration-200">
+            <div className="space-y-1">
+              <h3 className="text-2xl font-black text-gray-900 tracking-tight">Editar Material</h3>
+              <p className="text-sm font-medium text-gray-500">Atualize os parâmetros e preços do item</p>
             </div>
-          )}
 
-          <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4">
-            <button
-              onClick={() => setEditProduct(null)}
-              className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 order-2 sm:order-1">Cancelar</button>
-            <button
-              onClick={handleUpdateProduct}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 order-1 sm:order-2">Salvar</button>
+            {editProduct && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Nome</label>
+                  <input
+                    type="text"
+                    className="w-full h-12 bg-gray-50 border border-gray-100 rounded-xl px-4 text-sm font-medium focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all"
+                    value={editProduct.name}
+                    onChange={(e) => setEditProduct({ ...editProduct, name: e.target.value })}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Categoria</label>
+                  <input
+                    type="text"
+                    className="w-full h-12 bg-gray-50 border border-gray-100 rounded-xl px-4 text-sm font-medium focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all"
+                    value={editProduct.category}
+                    onChange={(e) => setEditProduct({ ...editProduct, category: e.target.value })}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-red-500 uppercase tracking-widest">P. Compra (R$/kg)</label>
+                  <input
+                    type="number"
+                    className="w-full h-12 bg-red-50/30 border border-red-100 rounded-xl px-4 text-sm font-bold focus:ring-4 focus:ring-red-100 focus:border-red-500 outline-none transition-all"
+                    value={editProduct.pricePerKgCompra}
+                    onChange={(e) => setEditProduct({ ...editProduct, pricePerKgCompra: Number(e.target.value) })}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-green-500 uppercase tracking-widest">P. Venda (R$/kg)</label>
+                  <input
+                    type="number"
+                    className="w-full h-12 bg-green-50/30 border border-green-100 rounded-xl px-4 text-sm font-bold focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all"
+                    value={editProduct.pricePerKgVenda}
+                    onChange={(e) => setEditProduct({ ...editProduct, pricePerKgVenda: Number(e.target.value) })}
+                  />
+                </div>
+                
+                <div className="space-y-2 sm:col-span-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Estoque em KG</label>
+                  <input
+                    type="number"
+                    className="w-full h-12 bg-gray-50 border border-gray-100 rounded-xl px-4 text-sm font-black focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all"
+                    value={editProduct.stock}
+                    onChange={(e) => setEditProduct({ ...editProduct, stock: Number(e.target.value) })}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-4 pt-4">
+              <button
+                onClick={() => setEditProduct(null)}
+                className="flex-1 h-14 rounded-2xl font-bold bg-gray-50 text-gray-500 hover:bg-gray-100 transition-all"
+              >
+                Voltar
+              </button>
+              <button
+                onClick={handleUpdateProduct}
+                className="flex-1 h-14 rounded-2xl font-black bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-xl shadow-blue-50 active:scale-95"
+              >
+                Salvar Alterações
+              </button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* ALERT DIALOG */}
+      {/* CONFIRM DELETE ALERT */}
       <AlertDialog open={deleteProductId !== null} onOpenChange={(open) => !open && setDeleteProductId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Produto?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Essa ação não pode ser desfeita. O produto será removido permanentemente do sistema.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteProductId(null)}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteProduct}>Excluir</AlertDialogAction>
-          </AlertDialogFooter>
+        <AlertDialogContent className="rounded-3xl p-8 border-none scroll-m-0 overflow-hidden">
+          <div className="flex flex-col items-center text-center space-y-4">
+            <div className="h-16 w-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center">
+              <Trash2 size={32} />
+            </div>
+            <div className="space-y-2">
+              <AlertDialogTitle className="text-2xl font-black text-gray-900">Excluir Material?</AlertDialogTitle>
+              <AlertDialogDescription className="text-gray-500 font-medium">
+                Esta ação é irreversível. O material será removido permanentemente de todos os registros e inventários.
+              </AlertDialogDescription>
+            </div>
+          </div>
+          <div className="flex gap-4 mt-8">
+            <AlertDialogCancel className="h-14 flex-1 rounded-2xl border-gray-100 font-bold hover:bg-gray-50" onClick={() => setDeleteProductId(null)}>
+              Manter Produto
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              className="h-14 flex-1 rounded-2xl bg-red-600 text-white font-black hover:bg-red-700 shadow-xl shadow-red-50"
+              onClick={confirmDeleteProduct}
+            >
+              Sim, Excluir
+            </AlertDialogAction>
+          </div>
         </AlertDialogContent>
       </AlertDialog>
-
     </div>
   );
 }

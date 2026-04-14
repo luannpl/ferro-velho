@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { useRouter, usePathname, redirect } from "next/navigation";
+import { Toaster } from "sonner";
 
 // Definição do item do menu
 interface MenuItem {
@@ -112,6 +113,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen">
+      <Toaster richColors position="top-right" />
       <Sidebar
         sidebarOpen={sidebarOpen}
         activePath={pathname}

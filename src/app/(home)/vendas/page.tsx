@@ -1,7 +1,8 @@
 "use client";
-import { Search, Trash2 } from "lucide-react";
+import { Search, Trash2, Package } from "lucide-react";
 import { useState, useEffect } from "react";
 import { VendaData } from "@/types";
+import { toast } from "sonner";
 
 // --- Interfaces Atualizadas ---
 
@@ -289,17 +290,17 @@ export default function VendasPage() {
         // Dispara a impressão
         imprimirCupomVenda(idFinal, saleItems, clienteSelecionado);
 
-        alert("Venda registrada com sucesso!");
+        toast.success("Venda registrada com sucesso!");
         setSaleItems([]);
         setSelectedClientId(null);
       } else {
-        alert(
+        toast.error(
           `Erro ao finalizar venda: ${result.error || "Erro desconhecido"}`,
         );
       }
     } catch (error) {
       console.error("Erro na comunicação com a API:", error);
-      alert("Erro de comunicação ao finalizar venda.");
+      toast.error("Erro de comunicação ao finalizar venda.");
     }
   };
 
@@ -327,153 +328,208 @@ export default function VendasPage() {
   // 4. Renderização com Seletor de Cliente Único na Comanda
   // --------------------------------------------------------
   return (
-    <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6">
-      {/* Lista de Produtos */}
-      <div className="lg:col-span-2">
-        <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6">
-          Nova Venda
-        </h2>
-        <div className="bg-white p-4 rounded-lg shadow mb-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Buscar produtos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg"
-            />
-          </div>
+    <div className="w-full space-y-8 animate-in fade-in duration-500">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <div>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Vendas</h1>
+          <p className="text-sm font-medium text-gray-500 mt-1">Registre as vendas de materiais</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {products.length === 0 && (
-            <p className="col-span-2 text-center text-gray-500">
-              Carregando produtos ou nenhum produto encontrado.
-            </p>
-          )}
-          {filteredProducts.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white p-4 rounded-lg shadow hover:shadow-lg transition-shadow"
-            >
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h3 className="font-bold text-lg">{product.name}</h3>
-                  <p className="text-sm text-gray-600">{product.category}</p>
-                </div>
-                <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">
-                  {product.stock.toFixed(2)} kg
-                </span>
-              </div>
-              <div className="flex justify-between items-center mt-3">
-                <span className="text-xl font-bold text-blue-600">
-                  R$ {(product.pricePerKgVenda ?? 0).toFixed(2)}/kg
-                </span>
-                <button
-                  onClick={() => addToSale(product)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                  disabled={product.stock <= 0}
-                >
-                  Adicionar
-                </button>
-              </div>
-            </div>
-          ))}
+        <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-100 items-center px-4 h-12">
+          <Package className="text-blue-500 mr-2" size={20} />
+          <span className="text-sm font-bold text-gray-700">{products.length} Produtos em Estoque</span>
         </div>
       </div>
 
-      {/* Comanda */}
-      <div className="lg:col-span-1">
-        <div className="bg-white rounded-lg shadow p-4 lg:sticky lg:top-6">
-          <h3 className="text-xl font-bold mb-4">Comanda</h3>
-          {saleItems.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">
-              Nenhum item adicionado
-            </p>
-          ) : (
-            <>
-              {/* NOVO: SELECT DE CLIENTE ACIMA DOS ITENS */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Associar Cliente à Venda (Opcional)
-                </label>
-                <select
-                  value={selectedClientId ?? ""}
-                  onChange={(e) =>
-                    setSelectedClientId(Number(e.target.value) || null)
-                  }
-                  className="w-full border rounded px-3 py-2 text-sm"
+      <div className="flex flex-col lg:grid lg:grid-cols-3 gap-8">
+        {/* Lista de Produtos Section */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+            <div className="relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={20} />
+              <input
+                type="text"
+                placeholder="Pesquisar por nome ou categoria de material..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-transparent focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50 rounded-xl transition-all outline-none text-gray-700 font-medium"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {products.length === 0 ? (
+              <div className="col-span-2 py-20 flex flex-col items-center justify-center bg-white rounded-3xl border border-dashed border-gray-200">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4"></div>
+                <p className="text-gray-400 font-medium">Sincronizando estoque...</p>
+              </div>
+            ) : filteredProducts.length === 0 ? (
+               <div className="col-span-2 py-20 flex flex-col items-center justify-center bg-white rounded-3xl border border-dashed border-gray-200">
+                <Search size={48} className="text-gray-200 mb-4" />
+                <p className="text-gray-400 font-medium">Nenhum produto encontrado para "{searchTerm}"</p>
+              </div>
+            ) : (
+              filteredProducts.map((product) => (
+                <div
+                  key={product.id}
+                  className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group"
                 >
-                  <option value="">Venda Avulsa (Sem Cliente)</option>
-                  {clients.map((client) => (
-                    <option key={client.id} value={client.id}>
-                      {client.name} ({client.cpf})
-                    </option>
-                  ))}
-                </select>
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="space-y-1">
+                      <h3 className="font-bold text-lg text-gray-900 group-hover:text-blue-600 transition-colors">{product.name}</h3>
+                      <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px] font-bold uppercase tracking-wider">
+                        {product.category}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${product.stock > 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+                        {product.stock.toFixed(2)} kg
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-end">
+                    <div>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Preço Unitário</p>
+                      <span className="text-2xl font-black text-gray-900">
+                        R$ {(product.pricePerKgVenda ?? 0).toFixed(2)}
+                        <span className="text-xs font-medium text-gray-400 ml-1">/kg</span>
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => addToSale(product)}
+                      disabled={product.stock <= 0}
+                      className={`h-10 px-5 rounded-xl font-bold transition-all active:scale-95 ${
+                        product.stock > 0 
+                        ? "bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-100" 
+                        : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      }`}
+                    >
+                      Selecionar
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Comanda / Carrinho Section */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden lg:sticky lg:top-8">
+            <div className="p-6 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
+               <h3 className="text-xl font-black text-gray-900 flex items-center gap-2">
+                 <Package className="text-blue-600" size={24} />
+                 Carrinho
+               </h3>
+               <span className="bg-white px-3 py-1 rounded-full text-xs font-bold text-blue-600 border border-blue-100">
+                 {saleItems.length} itens
+               </span>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Client Selection */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest">
+                  Cliente (Opcional)
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedClientId ?? ""}
+                    onChange={(e) =>
+                      setSelectedClientId(Number(e.target.value) || null)
+                    }
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500 appearance-none outline-none transition-all"
+                  >
+                    <option value="">Venda Direta / Balcão</option>
+                    {clients.map((client) => (
+                      <option key={client.id} value={client.id}>
+                        {client.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                      <path d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
                 {!selectedClientId && (
-                  <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
-                    <span className="font-semibold">⚠️ Venda Avulsa:</span>{" "}
-                    Nenhum cliente associado
+                  <p className="text-[10px] text-amber-600 font-bold bg-amber-50 rounded-lg p-2 mt-1">
+                     Modo: Venda de Balcão (Sem cliente identificado)
                   </p>
                 )}
               </div>
 
-              <div className="space-y-3 mb-4 max-h-96 overflow-auto">
-                {saleItems.map((item) => (
-                  <div key={item.product.id} className="border-b pb-3">
-                    {/* REMOVIDO: O select do cliente que estava aqui dentro do loop */}
-
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="font-semibold">{item.product.name}</span>
-                      <button
-                        onClick={() => removeFromSale(item.product.id)}
-                        className="text-red-600 hover:text-red-800 p-1"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <input
-                        type="number"
-                        value={item.weight}
-                        onChange={(e) =>
-                          updateSaleItemWeight(
-                            item.product.id,
-                            Number(e.target.value),
-                          )
-                        }
-                        className="w-20 border rounded px-2 py-1 text-sm"
-                        min="0"
-                        step="0.1"
-                      />
-                      <span className="text-sm text-gray-600">
-                        kg × R$ {(item.product.pricePerKgVenda ?? 0).toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="text-right font-bold text-blue-600">
-                      R$ {item.subtotal.toFixed(2)}
-                    </div>
+              {/* Items List */}
+              <div className="space-y-4 max-h-[400px] overflow-auto pr-2 custom-scrollbar">
+                {saleItems.length === 0 ? (
+                  <div className="py-10 text-center text-gray-300">
+                    <Trash2 size={40} className="mx-auto mb-3 opacity-20" />
+                    <p className="text-sm font-medium">Carrinho vazio</p>
                   </div>
-                ))}
+                ) : (
+                  saleItems.map((item) => (
+                    <div key={item.product.id} className="group p-4 bg-gray-50 rounded-2xl border border-transparent hover:border-blue-100 hover:bg-white transition-all">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                           <p className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{item.product.name}</p>
+                           <p className="text-[10px] text-gray-400 font-medium">R$ {(item.product.pricePerKgVenda ?? 0).toFixed(2)} /kg</p>
+                        </div>
+                        <button
+                          onClick={() => removeFromSale(item.product.id)}
+                          className="h-8 w-8 flex items-center justify-center text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center bg-white border border-gray-100 rounded-xl px-3 py-1.5 shadow-sm">
+                           <input
+                            type="number"
+                            value={item.weight}
+                            onChange={(e) =>
+                              updateSaleItemWeight(
+                                item.product.id,
+                                Number(e.target.value),
+                              )
+                            }
+                            className="w-16 bg-transparent border-none focus:ring-0 text-center font-bold text-gray-900"
+                            min="0.1"
+                            step="0.1"
+                          />
+                          <span className="text-[10px] font-black text-gray-400 ml-1">KG</span>
+                        </div>
+                        <p className="font-black text-gray-900">R$ {item.subtotal.toFixed(2)}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
-              <div className="border-t pt-4">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-lg font-bold">Total:</span>
-                  <span className="text-2xl font-bold text-green-600">
-                    R$ {getTotalSale().toFixed(2)}
-                  </span>
+
+              {/* Summary & Actions */}
+              {saleItems.length > 0 && (
+                <div className="space-y-4 pt-6 border-t border-gray-100">
+                  <div className="flex justify-between items-end">
+                    <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">Total Geral</span>
+                    <span className="text-3xl font-black text-green-600">
+                      R$ {getTotalSale().toFixed(2)}
+                    </span>
+                  </div>
+                  <button
+                    onClick={finalizeSale}
+                    className="w-full h-14 bg-green-600 text-white rounded-2xl hover:bg-green-700 font-black text-lg transition-all shadow-xl shadow-green-100 active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    Finalizar e Imprimir
+                  </button>
+                  <p className="text-[10px] text-gray-400 text-center font-bold">
+                    ESTOQUE SERÁ DEDUZIDO AUTOMATICAMENTE
+                  </p>
                 </div>
-                <button
-                  onClick={finalizeSale}
-                  className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-bold transition-colors"
-                  disabled={saleItems.length === 0}
-                >
-                  Finalizar Venda
-                </button>
-              </div>
-            </>
-          )}
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

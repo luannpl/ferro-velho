@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { toast } from "sonner";
 
 interface Client {
   id: number;
@@ -79,10 +80,11 @@ export default function ClientePage() {
     });
 
     if (response.ok) {
+        toast.success("Cliente deletado com sucesso!");
       fetchClient();
     } else {
       const error = await response.json();
-      alert("Erro ao deletar: " + error.message);
+      toast.error("Erro ao deletar: " + error.message);
     }
 
     setDeleteClientId(null);
@@ -98,21 +100,26 @@ export default function ClientePage() {
     });
 
     if (response.ok) {
+        toast.success("Cliente atualizado com sucesso!");
       fetchClient();
       setEditClient(null);
     } else {
       const error = await response.json();
-      alert("Erro ao atualizar: " + error.message);
+      toast.error("Erro ao atualizar: " + error.message);
     }
   };
 
   return (
-    <div>
-      <div className='flex justify-between items-center mb-6'>
-        <h2 className="text-3xl font-bold">Clientes</h2>
+    <div className="w-full space-y-8 animate-in fade-in duration-500">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <div>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Base de Clientes</h1>
+          <p className="text-sm font-medium text-gray-500 mt-1">Gerenciamento de fornecedores e compradores</p>
+        </div>
         <button
           onClick={() => setShowClientForm(true)}
-          className='bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700 transition-all duration-200 hover:shadow-lg'
+          className="h-12 px-6 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-50 active:scale-95"
         >
           <Plus size={20} />
           <span>Novo Cliente</span>
@@ -121,105 +128,99 @@ export default function ClientePage() {
 
       {/* FORMULÁRIO DE CADASTRO */}
       {showClientForm && (
-        <div className='bg-white p-4 md:p-6 rounded-lg shadow-md mb-6 border border-gray-100'>
-          <h3 className='text-xl font-bold mb-4 text-gray-800'>Cadastrar Cliente</h3>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-            <input type="text" placeholder='Nome' className='border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all'
-              value={newClient.name} onChange={(e) => setNewClient({ ...newClient, name: e.target.value })} />
-            <input type='number' placeholder='Idade' className='border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all'
-              value={newClient.idade} onChange={(e) => setNewClient({ ...newClient, idade: e.target.value })} />
-            <input type="text" placeholder="Telefone" className="border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-              value={newClient.telefone} onChange={(e) => setNewClient({ ...newClient, telefone: e.target.value })} />
-            <input type="text" placeholder="CPF" className="border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-              value={newClient.cpf} onChange={(e) => setNewClient({ ...newClient, cpf: e.target.value })} />
-            <input type="text" placeholder='Email' className='border rounded px-3 py-2 md:col-span-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all'
-              value={newClient.email} onChange={(e) => setNewClient({ ...newClient, email: e.target.value })} />
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden animate-in slide-in-from-top-4 duration-300">
+          <div className="p-6 border-b border-gray-50 bg-gray-50/50">
+             <h3 className="text-xl font-black text-gray-900">Cadastrar Cliente/Fornecedor</h3>
           </div>
-          <div className='flex flex-col sm:flex-row justify-end gap-3 mt-4'>
-            <button onClick={() => setShowClientForm(false)}
-              className="bg-red-400 text-white px-4 py-2 rounded hover:bg-red-500 transition-all duration-200 hover:shadow-md order-2 sm:order-1">Cancelar</button>
-            <button onClick={handlerCreateClient}
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-all duration-200 hover:shadow-md order-1 sm:order-2">Criar</button>
+          
+          <div className="p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Nome Completo</label>
+                <input type="text" placeholder="Nome" className="w-full h-12 bg-gray-50 border border-gray-100 rounded-xl px-4 text-sm font-medium focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all"
+                  value={newClient.name} onChange={(e) => setNewClient({ ...newClient, name: e.target.value })} />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Idade</label>
+                <input type="number" placeholder="Idade" className="w-full h-12 bg-gray-50 border border-gray-100 rounded-xl px-4 text-sm font-medium focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all"
+                  value={newClient.idade} onChange={(e) => setNewClient({ ...newClient, idade: e.target.value })} />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Telefone / WhatsApp</label>
+                <input type="text" placeholder="(85) 9..." className="w-full h-12 bg-gray-50 border border-gray-100 rounded-xl px-4 text-sm font-medium focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all"
+                  value={newClient.telefone} onChange={(e) => setNewClient({ ...newClient, telefone: e.target.value })} />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">CPF / CNPJ</label>
+                <input type="text" placeholder="000.000.000-00" className="w-full h-12 bg-gray-50 border border-gray-100 rounded-xl px-4 text-sm font-medium focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all"
+                  value={newClient.cpf} onChange={(e) => setNewClient({ ...newClient, cpf: e.target.value })} />
+              </div>
+
+              <div className="space-y-2 lg:col-span-2">
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">E-mail</label>
+                <input type="text" placeholder="cliente@exemplo.com" className="w-full h-12 bg-gray-50 border border-gray-100 rounded-xl px-4 text-sm font-medium focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all"
+                  value={newClient.email} onChange={(e) => setNewClient({ ...newClient, email: e.target.value })} />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-6 border-t border-gray-50">
+              <button onClick={() => setShowClientForm(false)}
+                className="h-12 px-6 rounded-xl font-bold bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all">Cancelar</button>
+              <button onClick={handlerCreateClient}
+                className="h-12 px-10 rounded-xl font-black bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg shadow-blue-50">Salvar Cadastro</button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* MOBILE: Cards */}
-      <div className="md:hidden space-y-4">
-        {client.map((clientItem) => (
-          <div key={clientItem.id} className="bg-white p-4 rounded-lg shadow border border-gray-100">
-            <div className="flex justify-between items-start mb-3">
-              <div>
-                <h4 className="font-bold text-lg text-gray-900">{clientItem.name}</h4>
-                <p className="text-sm text-gray-600">CPF: {clientItem.cpf}</p>
-              </div>
-              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
-                {clientItem.idade} anos
-              </span>
-            </div>
-            
-            <div className="space-y-2 mb-4">
-              <div className="flex items-center text-sm">
-                <span className="text-gray-600 w-20">Telefone:</span>
-                <span className="font-medium">{clientItem.telefone}</span>
-              </div>
-              <div className="flex items-center text-sm">
-                <span className="text-gray-600 w-20">Email:</span>
-                <span className="font-medium truncate">{clientItem.email}</span>
-              </div>
-            </div>
-            
-            <div className="flex gap-2 pt-3 border-t border-gray-200">
-              <button
-                onClick={() => setEditClient(clientItem)}
-                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
-                <Edit2 size={16} />
-                <span>Editar</span>
-              </button>
-              <button
-                onClick={() => setDeleteClientId(clientItem.id)}
-                className="flex-1 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors flex items-center justify-center gap-2">
-                <Trash2 size={16} />
-                <span>Excluir</span>
-              </button>
-            </div>
+      {/* Tabela de Clientes */}
+      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
+          <h3 className="font-bold text-gray-900">Lista Geral</h3>
+          <div className="px-3 py-1 bg-white border border-gray-100 rounded-lg text-xs font-black text-gray-500 uppercase tracking-widest">
+            {client.length} Clientes
           </div>
-        ))}
-      </div>
+        </div>
 
-      {/* DESKTOP: Tabela */}
-      <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
-          <table className='w-full'>
-            <thead className='bg-gray-50'>
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nome</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Idade</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Telefone</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">CPF</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ações</th>
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50/30">
+                <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Cliente</th>
+                <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">CPF</th>
+                <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Contato</th>
+                <th className="px-6 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-50">
               {client.map((clientItem) => (
-                <tr key={clientItem.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">{clientItem.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{clientItem.idade}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{clientItem.email}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{clientItem.telefone}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{clientItem.cpf}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => setEditClient(clientItem)}
-                      className="text-blue-600 hover:text-blue-800 mr-3 transition-colors">
-                      <Edit2 size={18} />
-                    </button>
-                    <button
-                      onClick={() => setDeleteClientId(clientItem.id)}
-                      className="text-red-600 hover:text-red-800 transition-colors">
-                      <Trash2 size={18} />
-                    </button>
+                <tr key={clientItem.id} className="hover:bg-gray-50/50 transition-colors group">
+                  <td className="px-6 py-4">
+                    <p className="font-bold text-gray-900">{clientItem.name}</p>
+                    <p className="text-[10px] text-gray-400 font-medium">{clientItem.email}</p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm font-medium text-gray-600">{clientItem.cpf}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="text-sm font-bold text-gray-900">{clientItem.telefone}</p>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <div className="flex items-center justify-center gap-2 text-gray-400">
+                      <button
+                        onClick={() => setEditClient(clientItem)}
+                        className="h-9 w-9 inline-flex items-center justify-center hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                        <Edit2 size={18} />
+                      </button>
+                      <button
+                        onClick={() => setDeleteClientId(clientItem.id)}
+                        className="h-9 w-9 inline-flex items-center justify-center hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -230,51 +231,79 @@ export default function ClientePage() {
 
       {/* DIALOG DE EDIÇÃO */}
       <Dialog open={!!editClient} onOpenChange={(open) => !open && setEditClient(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Cliente</DialogTitle>
-            <DialogDescription>Altere as informações e clique em “Salvar”.</DialogDescription>
-          </DialogHeader>
-
-          {editClient && (
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              <input type="text" placeholder="Nome" className="border rounded px-3 py-2"
-                value={editClient.name} onChange={(e) => setEditClient({ ...editClient, name: e.target.value })} />
-              <input type="number" placeholder="Idade" className="border rounded px-3 py-2"
-                value={editClient.idade} onChange={(e) => setEditClient({ ...editClient, idade: Number(e.target.value) })} />
-              <input type="text" placeholder="Telefone" className="border rounded px-3 py-2"
-                value={editClient.telefone} onChange={(e) => setEditClient({ ...editClient, telefone: e.target.value })} />
-              <input type="text" placeholder="CPF" className="border rounded px-3 py-2"
-                value={editClient.cpf} onChange={(e) => setEditClient({ ...editClient, cpf: e.target.value })} />
-              <input type="text" placeholder="Email" className="border rounded px-3 py-2 md:col-span-2"
-                value={editClient.email} onChange={(e) => setEditClient({ ...editClient, email: e.target.value })} />
+        <DialogContent className="sm:max-w-xl p-0 overflow-hidden rounded-3xl border-none">
+          <div className="p-8 space-y-8 animate-in zoom-in-95 duration-200">
+            <div className="space-y-1">
+              <h3 className="text-2xl font-black text-gray-900 tracking-tight">Editar Cadastro</h3>
+              <p className="text-sm font-medium text-gray-500">Atualize os dados pessoais do cliente</p>
             </div>
-          )}
 
-          <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4">
-            <button
-              onClick={() => setEditClient(null)}
-              className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 order-2 sm:order-1">Cancelar</button>
-            <button
-              onClick={handleUpdateClient}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 order-1 sm:order-2">Salvar</button>
+            {editClient && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Nome</label>
+                  <input type="text" className="w-full h-12 bg-gray-50 border border-gray-100 rounded-xl px-4 text-sm font-medium focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all"
+                    value={editClient.name} onChange={(e) => setEditClient({ ...editClient, name: e.target.value })} />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Idade</label>
+                  <input type="number" className="w-full h-12 bg-gray-50 border border-gray-100 rounded-xl px-4 text-sm font-medium focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all"
+                    value={editClient.idade} onChange={(e) => setEditClient({ ...editClient, idade: Number(e.target.value) })} />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Telefone</label>
+                  <input type="text" className="w-full h-12 bg-gray-50 border border-gray-100 rounded-xl px-4 text-sm font-medium focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all"
+                    value={editClient.telefone} onChange={(e) => setEditClient({ ...editClient, telefone: e.target.value })} />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">CPF</label>
+                  <input type="text" className="w-full h-12 bg-gray-50 border border-gray-100 rounded-xl px-4 text-sm font-medium focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all"
+                    value={editClient.cpf} onChange={(e) => setEditClient({ ...editClient, cpf: e.target.value })} />
+                </div>
+
+                <div className="space-y-2 sm:col-span-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">E-mail</label>
+                  <input type="text" className="w-full h-12 bg-gray-50 border border-gray-100 rounded-xl px-4 text-sm font-medium focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all"
+                    value={editClient.email} onChange={(e) => setEditClient({ ...editClient, email: e.target.value })} />
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-4 pt-4">
+              <button
+                onClick={() => setEditClient(null)}
+                className="flex-1 h-14 rounded-2xl font-bold bg-gray-50 text-gray-500 hover:bg-gray-100 transition-all">Cancelar</button>
+              <button
+                onClick={handleUpdateClient}
+                className="flex-1 h-14 rounded-2xl font-black bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-xl shadow-blue-50 active:scale-95">Salvar Alterações</button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* ALERT DIALOG */}
       <AlertDialog open={deleteClientId !== null} onOpenChange={(open) => !open && setDeleteClientId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir cliente?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Essa ação não pode ser desfeita. O cliente será removido permanentemente do sistema.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteClientId(null)}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteClient}>Excluir</AlertDialogAction>
-          </AlertDialogFooter>
+        <AlertDialogContent className="rounded-3xl p-8 border-none scroll-m-0 overflow-hidden">
+          <div className="flex flex-col items-center text-center space-y-4">
+            <div className="h-16 w-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center">
+              <Trash2 size={32} />
+            </div>
+            <div className="space-y-2">
+              <AlertDialogTitle className="text-2xl font-black text-gray-900">Remover Cliente?</AlertDialogTitle>
+              <AlertDialogDescription className="text-gray-500 font-medium">
+                Esta ação enviará o registro para o arquivo permanente. O cliente perderá acesso a créditos e históricos vinculados.
+              </AlertDialogDescription>
+            </div>
+          </div>
+          <div className="flex gap-4 mt-8">
+            <AlertDialogCancel className="h-14 flex-1 rounded-2xl border-gray-100 font-bold hover:bg-gray-50" onClick={() => setDeleteClientId(null)}>Manter Registro</AlertDialogCancel>
+            <AlertDialogAction 
+              className="h-14 flex-1 rounded-2xl bg-red-600 text-white font-black hover:bg-red-700 shadow-xl shadow-red-50"
+              onClick={confirmDeleteClient}>Sim, Remover</AlertDialogAction>
+          </div>
         </AlertDialogContent>
       </AlertDialog>
     </div>
