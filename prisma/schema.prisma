@@ -101,5 +101,7 @@ model Caixa {
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
+  @@index([dataCaixaFechamento])
   @@map("caixas")
 }
+

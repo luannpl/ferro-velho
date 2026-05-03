@@ -24,6 +24,7 @@ interface Client {
 interface SaleItem {
   product: Product;
   weight: number;
+  price: number;
   subtotal: number;
 }
 
@@ -92,7 +93,7 @@ export default function VendasPage() {
             ? {
                 ...item,
                 weight: item.weight + initialWeight,
-                subtotal: (item.weight + initialWeight) * price,
+                subtotal: (item.weight + initialWeight) * item.price,
               }
             : item,
         ),
@@ -103,6 +104,7 @@ export default function VendasPage() {
         {
           product,
           weight: initialWeight,
+          price: price,
           subtotal: initialWeight * price,
         },
       ]);
@@ -220,7 +222,7 @@ export default function VendasPage() {
             (item: SaleItem) => `
           <tr>
             <td class="col-desc">${item.product.name}</td>
-            <td class="col-preco">${(item.product.pricePerKgVenda || 0).toFixed(2)}</td>
+            <td class="col-preco">${(item.price || 0).toFixed(2)}</td>
             <td class="col-kg">${item.weight.toFixed(3)}</td>
             <td class="col-total">${item.subtotal.toFixed(2)}</td>
           </tr>
@@ -265,7 +267,7 @@ export default function VendasPage() {
       itens: saleItems.map((item) => ({
         produtoId: item.product.id,
         peso: item.weight,
-        precoKg: item.product.pricePerKgVenda ?? 0,
+        precoKg: item.price,
         subtotal: item.subtotal,
       })),
     };
@@ -312,11 +314,25 @@ export default function VendasPage() {
     setSaleItems(
       saleItems.map((item) => {
         if (item.product.id === productId) {
-          const price = item.product.pricePerKgVenda ?? 0;
           return {
             ...item,
             weight: newWeight,
-            subtotal: newWeight * price,
+            subtotal: newWeight * item.price,
+          };
+        }
+        return item;
+      }),
+    );
+  };
+
+  const updateSaleItemPrice = (productId: number, newPrice: number) => {
+    setSaleItems(
+      saleItems.map((item) => {
+        if (item.product.id === productId) {
+          return {
+            ...item,
+            price: newPrice,
+            subtotal: item.weight * newPrice,
           };
         }
         return item;
@@ -484,24 +500,47 @@ export default function VendasPage() {
                         </button>
                       </div>
                       
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center bg-white border border-gray-100 rounded-xl px-3 py-1.5 shadow-sm">
-                           <input
-                            type="number"
-                            value={item.weight}
-                            onChange={(e) =>
-                              updateSaleItemWeight(
-                                item.product.id,
-                                Number(e.target.value),
-                              )
-                            }
-                            className="w-16 bg-transparent border-none focus:ring-0 text-center font-bold text-gray-900"
-                            min="0.1"
-                            step="0.1"
-                          />
-                          <span className="text-[10px] font-black text-gray-400 ml-1">KG</span>
+                      <div className="flex flex-col gap-2 mt-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center bg-white border border-gray-100 rounded-xl px-2 py-1.5 shadow-sm flex-1">
+                            <span className="text-[10px] font-black text-gray-400 ml-1">KG</span>
+                             <input
+                              type="number"
+                              value={item.weight}
+                              onChange={(e) =>
+                                updateSaleItemWeight(
+                                  item.product.id,
+                                  Number(e.target.value),
+                                )
+                              }
+                              className="w-full bg-transparent border-none focus:ring-0 text-center font-bold text-gray-900 p-0"
+                              min="0.001"
+                              step="0.1"
+                            />
+                          </div>
+
+                          <div className="flex items-center bg-white border border-gray-100 rounded-xl px-2 py-1.5 shadow-sm flex-1">
+                            <span className="text-[10px] font-black text-gray-400 ml-1">R$</span>
+                             <input
+                              type="number"
+                              value={item.price}
+                              onChange={(e) =>
+                                updateSaleItemPrice(
+                                  item.product.id,
+                                  Number(e.target.value),
+                                )
+                              }
+                              className="w-full bg-transparent border-none focus:ring-0 text-center font-bold text-gray-900 p-0"
+                              min="0.01"
+                              step="0.01"
+                            />
+                          </div>
                         </div>
-                        <p className="font-black text-gray-900">R$ {item.subtotal.toFixed(2)}</p>
+                        
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Subtotal</span>
+                          <p className="font-black text-gray-900">R$ {item.subtotal.toFixed(2)}</p>
+                        </div>
                       </div>
                     </div>
                   ))

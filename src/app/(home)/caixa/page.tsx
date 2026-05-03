@@ -31,7 +31,9 @@ interface Caixa {
 export default function Caixa() {
     const [caixaAberto, setCaixaAberto] = useState<Caixa | null>(null);
     const [historico, setHistorico] = useState<Caixa[]>([]);
+    const [totalHistorico, setTotalHistorico] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
+
     const [currentPage, setCurrentPage] = useState(1);
     const [currentTransacaoPage, setCurrentTransacaoPage] = useState(1);
     const itemsPerPage = 5;
@@ -69,18 +71,13 @@ export default function Caixa() {
         }
     };
 
-    const fetchHistorico = async () => {
+    const fetchHistorico = async (page: number = 1) => {
         try {
-            const response = await fetch("/api/caixa");
+            const response = await fetch(`/api/caixa?page=${page}&limit=${itemsPerPage}`);
             if (response.ok) {
                 const data = await response.json();
-                // Ordenar por data de abertura (mais recente primeiro)
-                const sorted = data.sort((a: any, b: any) => new Date(b.dataCaixaAbertura).getTime() - new Date(a.dataCaixaAbertura).getTime());
-
-                // Filtrar apenas caixas fechados para o histórico
-                const fechados = sorted.filter((c: any) => c.dataCaixaFechamento !== null);
-
-                setHistorico(fechados);
+                setHistorico(data.history);
+                setTotalHistorico(data.total);
             }
         } catch (error) {
             console.error("Erro ao buscar histórico:", error);
@@ -89,8 +86,9 @@ export default function Caixa() {
 
     useEffect(() => {
         fetchCaixaStatus();
-        fetchHistorico();
-    }, []);
+        fetchHistorico(currentPage);
+    }, [currentPage]);
+
 
     const handleOpenCaixa = async () => {
         setIsLoading(true);
@@ -171,8 +169,9 @@ export default function Caixa() {
         : 'Data de Abertura Desconhecida';
 
     // Lógica de Paginação
-    const totalPages = Math.ceil(historico.length / itemsPerPage);
-    const currentHistorico = historico.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    const totalPages = Math.ceil(totalHistorico / itemsPerPage);
+    const currentHistorico = historico;
+
 
     const handlePreviousPage = () => {
         if (currentPage > 1) {
@@ -377,7 +376,8 @@ export default function Caixa() {
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gray-900">Caixas Anteriores</h3>
-                                    <p className="text-xs text-gray-500">{historico.length} fechamentos</p>
+                                    <p className="text-xs text-gray-500">{totalHistorico} fechamentos no total</p>
+
                                 </div>
                             </div>
                         </div>

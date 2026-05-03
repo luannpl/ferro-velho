@@ -14,8 +14,9 @@ import {
   LogOut,
   X,
 } from "lucide-react";
-import { useRouter, usePathname, redirect } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Toaster } from "sonner";
+import { logout } from "@/app/actions/auth";
 
 // Definição do item do menu
 interface MenuItem {
@@ -47,11 +48,13 @@ const Sidebar = ({
   activePath,
   navigateTo,
   closeSidebar,
+  onLogout,
 }: {
   sidebarOpen: boolean;
   activePath: string;
   navigateTo: (path: string) => void;
   closeSidebar: () => void;
+  onLogout: () => void;
 }) => {
   return (
     <div
@@ -86,7 +89,7 @@ const Sidebar = ({
           ))}
           <button
             className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-red-500 hover:bg-gray-800 transition-colors "
-            onClick={() => redirect("/")}
+            onClick={onLogout}
           >
             <LogOut size={20} />
             <span>Sair</span>
@@ -111,6 +114,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const handleLogout = async () => {
+    await logout();
+    router.push("/");
+  };
+
   return (
     <div className="flex h-screen">
       <Toaster richColors position="top-right" />
@@ -119,6 +127,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         activePath={pathname}
         navigateTo={navigateTo}
         closeSidebar={() => setSidebarOpen(false)}
+        onLogout={handleLogout}
       />
 
       <div className="flex-1 overflow-auto bg-gray-100">

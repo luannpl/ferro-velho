@@ -4,9 +4,13 @@ import { CaixaData } from "@/types";
 import { caixaRepository } from "./caixa.repository";
 
 export const caixaService = {
-    getAll: async () => {
-        return await caixaRepository.findAll();
+    getAll: async (page: number = 1, limit: number = 5) => {
+        const history = await caixaRepository.findHistory(page, limit);
+        const total = await caixaRepository.countHistory();
+        return { history, total };
     },
+
+
     getById: async (id: number) => {
         const caixa = await caixaRepository.findById(id);
         if (!caixa) throw new Error("Caixa nao encontrado");
