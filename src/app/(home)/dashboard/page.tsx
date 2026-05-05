@@ -24,7 +24,7 @@ export default function DashboardPage() {
                 
                 setDashboardData(data);
             } catch (error: any) {
-                console.error("Erro ao buscar dados do dashboard:", error);
+
                 setError(error.message);
             }
         };

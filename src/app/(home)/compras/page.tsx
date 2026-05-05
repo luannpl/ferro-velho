@@ -52,7 +52,7 @@ export default function ComprasPage() {
         ]);
 
         if (!productsRes.ok || !clientsRes.ok) {
-          console.error("Erro carregando produtos ou pessoas.");
+
           return;
         }
 
@@ -64,7 +64,7 @@ export default function ComprasPage() {
         setProducts(productsData);
         setFornecedores(clientsData);
       } catch (error) {
-        console.error("Erro ao carregar dados:", error);
+
       }
     }
 
@@ -453,7 +453,7 @@ export default function ComprasPage() {
 
       const win = window.open("", "_blank", "width=400,height=600");
       if (!win) {
-        console.error("Pop-up bloqueado! Permita pop-ups para imprimir.");
+
         return; 
       }
 
@@ -469,8 +469,8 @@ export default function ComprasPage() {
       }, 300);
 
     } catch (err) {
-      console.error("Erro ao imprimir:", err);
-      console.error("Erro ao imprimir a compra.");
+
+
     }
   };
   return (

@@ -16,7 +16,7 @@ export async function login(prevState: any, formData: FormData) {
   }
 
   if (!adminEmail || !adminPassword) {
-    console.error('ADMIN_EMAIL ou ADMIN_PASSWORD não configurados no .env');
+
     return { error: 'Erro de configuração do servidor.' };
   }
 

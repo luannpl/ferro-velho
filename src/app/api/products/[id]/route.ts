@@ -8,7 +8,7 @@ export async function DELETE(
   try {
     const { id } = await context.params;
     const product = await productService.delete(Number(id));
-    console.log(product);
+
     return NextResponse.json(
       { message: product.message },
       { status: product.status }

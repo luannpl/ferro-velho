@@ -30,7 +30,7 @@ export function SalesChart() {
                 const result = await response.json();
                 setData(result);
             } catch (error) {
-                console.error("Erro ao buscar dados do gráfico:", error);
+
             } finally {
                 setLoading(false);
             }

@@ -57,7 +57,7 @@ export default function VendasPage() {
         }));
         setProducts(productsFormatted);
       } catch (error) {
-        console.error("Erro ao buscar produtos:", error);
+
       }
     };
 
@@ -69,7 +69,7 @@ export default function VendasPage() {
         const data: Client[] = await response.json();
         setClients(data);
       } catch (error) {
-        console.error("Erro ao buscar clientes:", error);
+
       }
     };
 
@@ -301,7 +301,7 @@ export default function VendasPage() {
         );
       }
     } catch (error) {
-      console.error("Erro na comunicação com a API:", error);
+
       toast.error("Erro de comunicação ao finalizar venda.");
     }
   };

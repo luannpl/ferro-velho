@@ -12,7 +12,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
         return NextResponse.json(caixaFechado, { status: 200 });
     } catch (error: any) {
-        console.error("Erro no PATCH /caixa/[id]:", error);
+
         // O erro original da aplicação (se não for o erro de params)
         return NextResponse.json({ error: error.message || "Erro interno do servidor." }, { status: 400 });
     }

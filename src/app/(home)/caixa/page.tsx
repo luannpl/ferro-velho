@@ -61,11 +61,9 @@ export default function Caixa() {
                 setCaixaAberto(caixaData);
             } else if (response.status === 404) {
                 setCaixaAberto(null); // Nenhum caixa aberto
-            } else {
-                console.error("Erro ao buscar status do caixa:", response.statusText);
             }
         } catch (error) {
-            console.error("Erro de comunicação ao buscar status do caixa:", error);
+
         } finally {
             setIsLoading(false);
         }
@@ -80,7 +78,7 @@ export default function Caixa() {
                 setTotalHistorico(data.total);
             }
         } catch (error) {
-            console.error("Erro ao buscar histórico:", error);
+
         }
     };
 
@@ -107,7 +105,7 @@ export default function Caixa() {
                 toast.error(`Erro ao abrir caixa: ${error.error}`);
             }
         } catch (error) {
-            console.error("Erro ao abrir caixa:", error);
+
             toast.error("Erro de comunicação ao abrir caixa.");
         } finally {
             setIsLoading(false);
@@ -143,7 +141,7 @@ export default function Caixa() {
                 toast.error(`Erro ao fechar caixa: ${error.error}`);
             }
         } catch (error) {
-            console.error("Erro ao fechar caixa:", error);
+
             toast.error("Erro de comunicação ao fechar caixa.");
         } finally {
             setIsLoading(false);

@@ -45,14 +45,14 @@ export default function TransferenciaPage() {
         const productsRes = await fetch("/api/products");
 
         if (!productsRes.ok) {
-          console.error("Erro carregando produtos");
+
           return;
         }
 
         const productsData = await productsRes.json();
         setProducts(productsData);
       } catch (error) {
-        console.error("Erro ao carregar dados:", error);
+
       }
     }
 
