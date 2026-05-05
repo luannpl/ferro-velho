@@ -10,18 +10,36 @@ import { SalesChart } from "@/components/dashboard/SalesChart";
 
 export default function DashboardPage() {
     const [dashboardData, setDashboardData] = useState<Dashboard | null>(null);
+    const [error, setError] = useState<string | null>(null);
+
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
                 const response = await fetch("/api/dashboard");
                 const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || "Erro ao carregar dados");
+                }
+                
                 setDashboardData(data);
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Erro ao buscar dados do dashboard:", error);
+                setError(error.message);
             }
         };
         fetchDashboardData();
     }, []);
+
+    if (error) {
+        return (
+            <div className="flex h-[400px] flex-col items-center justify-center text-red-500">
+                <p className="text-xl font-bold">Erro ao carregar dashboard</p>
+                <p>{error}</p>
+            </div>
+        );
+    }
+
     if (!dashboardData) {
         return (
             <div className="flex h-[400px] items-center justify-center">
@@ -39,7 +57,7 @@ export default function DashboardPage() {
                         <div>
                             <p className="text-gray-500 font-medium text-sm">Total em Estoque</p>
                             <p className="text-3xl font-bold mt-1 text-gray-900">
-                               {dashboardData.totalInStock.toLocaleString()} <span className="text-lg font-normal text-gray-500">kg</span>
+                               {dashboardData.totalInStock?.toLocaleString() || 0} <span className="text-lg font-normal text-gray-500">kg</span>
                             </p>
                         </div>
                         <div className="h-12 w-12 bg-blue-50 rounded-xl flex items-center justify-center">
